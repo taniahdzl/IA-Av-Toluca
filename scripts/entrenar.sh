@@ -37,7 +37,7 @@ checkpoint_cb = CheckpointCallback(
 print("=== Entrenando 500,000 pasos ===")
 print("  reward_ponderada | ep=30min | intervalo=30s")
 print()
-model.learn(total_timesteps=500_000, callback=checkpoint_cb, progress_bar=True)
+model.learn(total_timesteps=500_000, callback=checkpoint_cb, )
 model.save("rl/models/ppo_semaforo_v1")
 print("\n✓ Modelo guardado: rl/models/ppo_semaforo_v1.zip")
 
