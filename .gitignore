@@ -1,0 +1,37 @@
+# Entorno y secretos
+.env
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Modelos entrenados
+# Ignorar checkpoints intermedios (ppo_toluca_XXXXX_steps.zip)
+rl/models/ppo_toluca_*.zip
+# Sí versionar el modelo final
+!rl/models/ppo_semaforo_v1.zip
+
+# Datos crudos y validación
+data/raw/*.json
+data/validation/*.csv
+
+# Sí versionar JSONs calibrados
+!data/processed/*.json
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
