@@ -1,0 +1,44 @@
+{
+  "_descripcion": "Flujos vehiculares por vialidad en vehículos/hora, por periodo del día.",
+  "_estado": "PENDIENTE — calcular desde conteos de sección C.1 de la hoja de observación",
+  "_periodos": {
+    "0": "madrugada",
+    "1": "mañana_pico",
+    "2": "mediodia",
+    "3": "tarde_pico",
+    "4": "noche"
+  },
+
+  "flujos_veh_hora": {
+    "toluca_arriba":    [null, null, null, null, null],
+    "toluca_abajo":     [null, null, null, null, null],
+    "periferico_norte": [null, null, null, null, null],
+    "periferico_sur":   [null, null, null, null, null]
+  },
+
+  "tasa_descarga_veh_por_segundo": {
+    "_descripcion": "Vehículos que cruzan la línea de parada por segundo de verde. Sección E de la hoja.",
+    "toluca_arriba":    null,
+    "toluca_abajo":     null,
+    "periferico_norte": null,
+    "periferico_sur":   null
+  },
+
+  "tiempos_semaforo_observados": {
+    "_descripcion": "Tiempos reales medidos en campo. Sección A de la hoja.",
+    "verde_toluca_s":     null,
+    "verde_periferico_s": null,
+    "amarillo_s":         null,
+    "ciclo_total_s":      null
+  },
+
+  "perfiles_conductor": {
+    "_descripcion": "Fracción estimada de cada perfil. Sección D de la hoja. Deben sumar 1.0.",
+    "agresivo":  null,
+    "normal":    null,
+    "cauteloso": null
+  },
+
+  "fuente": "observacion_campo secciones A, C, D, E",
+  "fecha_calibracion": null
+}

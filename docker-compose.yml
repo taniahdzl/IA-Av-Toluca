@@ -1,0 +1,13 @@
+services:
+  demo:
+    build: .
+    ports:
+      - "${VIZ_PORT:-8000}:8000"
+    env_file:
+      - .env
+    volumes:
+      # Montar data/ para poder actualizar los JSONs calibrados sin reconstruir
+      - ./data:/app/data
+      # Montar modelos entrenados
+      - ./rl/models:/app/rl/models
+    restart: unless-stopped

@@ -1,0 +1,29 @@
+# ── Simulación y cómputo ──────────────────────────────────────
+numpy>=1.26
+scipy>=1.12
+
+# ── Aprendizaje por refuerzo ──────────────────────────────────
+gymnasium>=0.29
+stable-baselines3>=2.3
+torch>=2.2          # CPU es suficiente para este proyecto
+
+# ── Datos y análisis ──────────────────────────────────────────
+pandas>=2.2
+matplotlib>=3.8
+
+# ── Geometría y mapas ─────────────────────────────────────────
+osmnx>=1.9          # Descarga geometría de OpenStreetMap
+shapely>=2.0
+
+# ── Demo visual ───────────────────────────────────────────────
+fastapi>=0.111
+uvicorn[standard]>=0.29
+
+# ── Utilidades ────────────────────────────────────────────────
+python-dotenv>=1.0  # Leer variables de .env
+requests>=2.31      # Llamadas a Google Routes API
+tqdm>=4.66          # Barras de progreso en entrenamiento
+
+# ── Desarrollo y tests ────────────────────────────────────────
+pytest>=8.2
+pytest-cov>=5.0

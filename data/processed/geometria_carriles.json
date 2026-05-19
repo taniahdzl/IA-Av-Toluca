@@ -1,0 +1,85 @@
+{
+  "_descripcion": "Geometría del cruce calibrada con observación de campo + OSM.",
+  "_estado": "PENDIENTE — llenar después de visita de campo (sección B de hoja de observación)",
+  "_unidades": "longitudes en metros, capacidad en número de vehículos",
+
+  "vialidades": {
+    "toluca_arriba": {
+      "nombre_completo": "Av. Toluca dirección Periférico",
+      "carriles": [
+        {
+          "id": "tol_arr_1",
+          "numero": 1,
+          "movimientos_permitidos": ["recto", "izquierda"],
+          "longitud_almacenamiento_m": null,
+          "capacidad_vehiculos": null,
+          "ancho_estimado_m": null
+        },
+        {
+          "id": "tol_arr_2",
+          "numero": 2,
+          "movimientos_permitidos": ["recto", "derecha"],
+          "longitud_almacenamiento_m": null,
+          "capacidad_vehiculos": null,
+          "ancho_estimado_m": null
+        }
+      ],
+      "notas": ""
+    },
+    "toluca_abajo": {
+      "nombre_completo": "Av. Toluca dirección Revolución",
+      "carriles": [
+        {
+          "id": "tol_aba_1",
+          "numero": 1,
+          "movimientos_permitidos": ["recto", "izquierda"],
+          "longitud_almacenamiento_m": null,
+          "capacidad_vehiculos": null,
+          "ancho_estimado_m": null
+        },
+        {
+          "id": "tol_aba_2",
+          "numero": 2,
+          "movimientos_permitidos": ["recto", "derecha"],
+          "longitud_almacenamiento_m": null,
+          "capacidad_vehiculos": null,
+          "ancho_estimado_m": null
+        }
+      ],
+      "notas": ""
+    },
+    "periferico_norte": {
+      "nombre_completo": "Anillo Periférico lateral Norte",
+      "carriles": [
+        {
+          "id": "per_nor_1",
+          "numero": 1,
+          "movimientos_permitidos": ["recto", "derecha"],
+          "longitud_almacenamiento_m": null,
+          "capacidad_vehiculos": null,
+          "ancho_estimado_m": null
+        }
+      ],
+      "notas": ""
+    },
+    "periferico_sur": {
+      "nombre_completo": "Anillo Periférico lateral Sur",
+      "carriles": [
+        {
+          "id": "per_sur_1",
+          "numero": 1,
+          "movimientos_permitidos": ["recto", "izquierda"],
+          "longitud_almacenamiento_m": null,
+          "capacidad_vehiculos": null,
+          "ancho_estimado_m": null
+        }
+      ],
+      "notas": ""
+    }
+  },
+
+  "longitud_vehiculo_promedio_m": 4.5,
+  "separacion_detencion_m": 1.0,
+  "fuente": "observacion_campo + OSM",
+  "fecha_calibracion": null
+}

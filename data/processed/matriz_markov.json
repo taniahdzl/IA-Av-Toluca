@@ -1,0 +1,45 @@
+{
+  "_descripcion": "Probabilidades de movimiento por vialidad de entrada y periodo del día.",
+  "_estado": "PENDIENTE — llenar con conteos de sección C.2 de la hoja de observación",
+  "_periodos": {
+    "0": "madrugada (00:00–05:59)",
+    "1": "mañana_pico (06:00–09:59)",
+    "2": "mediodia (10:00–13:59)",
+    "3": "tarde_pico (14:00–19:59)",
+    "4": "noche (20:00–23:59)"
+  },
+  "_movimientos": ["recto", "izquierda", "derecha"],
+  "_nota": "Los tres valores de cada entrada deben sumar 1.0",
+
+  "toluca_arriba": {
+    "0": [null, null, null],
+    "1": [null, null, null],
+    "2": [null, null, null],
+    "3": [null, null, null],
+    "4": [null, null, null]
+  },
+  "toluca_abajo": {
+    "0": [null, null, null],
+    "1": [null, null, null],
+    "2": [null, null, null],
+    "3": [null, null, null],
+    "4": [null, null, null]
+  },
+  "periferico_norte": {
+    "0": [null, null, null],
+    "1": [null, null, null],
+    "2": [null, null, null],
+    "3": [null, null, null],
+    "4": [null, null, null]
+  },
+  "periferico_sur": {
+    "0": [null, null, null],
+    "1": [null, null, null],
+    "2": [null, null, null],
+    "3": [null, null, null],
+    "4": [null, null, null]
+  },
+
+  "fuente": "observacion_campo sección C.2",
+  "fecha_calibracion": null
+}
