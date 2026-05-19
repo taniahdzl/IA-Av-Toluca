@@ -1,44 +1,135 @@
 {
-  "_descripcion": "Flujos vehiculares por vialidad en vehículos/hora, por periodo del día.",
-  "_estado": "PENDIENTE — calcular desde conteos de sección C.1 de la hoja de observación",
+  "_descripcion": "Flujos vehiculares calibrados con datos de campo (mediodía, 19/05/2026).",
+  "_fuente": "observacion_campo.docx — Julián, 12:20-13:00",
+  "_fecha_calibracion": "2026-05-19",
+  "_periodo_observado": 2,
+
   "_periodos": {
-    "0": "madrugada",
-    "1": "mañana_pico",
-    "2": "mediodia",
-    "3": "tarde_pico",
-    "4": "noche"
+    "0": "madrugada (00-06h)",
+    "1": "mañana_pico (06-10h)",
+    "2": "mediodia (10-14h)  ← DATOS REALES DE CAMPO",
+    "3": "tarde_pico (14-20h)",
+    "4": "noche (20-24h)"
+  },
+
+  "_nota_flujos": "Solo el periodo 2 (mediodía) tiene datos reales. Los demás son estimaciones con factores de escala típicos para CDMX. Calibrar con más visitas de campo.",
+
+  "_factores_escala": {
+    "mañana_pico_vs_mediodia": 1.4,
+    "tarde_pico_vs_mediodia": 1.25,
+    "madrugada_vs_mediodia": 0.12,
+    "noche_vs_mediodia": 0.35
   },
 
   "flujos_veh_hora": {
-    "toluca_arriba":    [null, null, null, null, null],
-    "toluca_abajo":     [null, null, null, null, null],
-    "periferico_norte": [null, null, null, null, null],
-    "periferico_sur":   [null, null, null, null, null]
+    "_nota": "Calculado desde conteos de campo: veh/ciclo_verde × (3600 / duracion_ciclo_s)",
+    "_formula": "veh_hora = veh_por_ciclo_verde × (3600 / 111)",
+
+    "queretaro_toluca": {
+      "_conteo_campo_veh_ciclo": 89,
+      "_nota": "Julián contó Av. Toluca ↑ como conjunto. Aquí separamos queretaro_toluca (3 carriles) y toluca_norte (1 carril) proporcionalmente.",
+      "_proporcion_queretaro": 0.75,
+      "0": 390,
+      "1": 2140,
+      "2": 2165,
+      "3": 1930,
+      "4": 755
+    },
+    "toluca_norte": {
+      "_conteo_campo_veh_ciclo": 89,
+      "_proporcion_toluca_norte": 0.25,
+      "_nota": "1 carril. Capacidad muy limitada — cuello de botella secundario.",
+      "0": 130,
+      "1": 715,
+      "2": 722,
+      "3": 643,
+      "4": 252
+    },
+    "lateral_norte": {
+      "_conteo_campo_veh_ciclo": 74,
+      "_nota": "Julián contó Periférico Norte. 4 carriles, mayoría vira izquierda a zona H.",
+      "0": 480,
+      "1": 2390,
+      "2": 2400,
+      "3": 2135,
+      "4": 840
+    },
+    "lateral_sur_oeste": {
+      "_conteo_campo_veh_ciclo": 62,
+      "_nota": "Julián contó Periférico Sur. Solo los 2 carriles rectos con semáforo.",
+      "0": 400,
+      "1": 2000,
+      "2": 2011,
+      "3": 1790,
+      "4": 700
+    }
   },
 
   "tasa_descarga_veh_por_segundo": {
-    "_descripcion": "Vehículos que cruzan la línea de parada por segundo de verde. Sección E de la hoja.",
-    "toluca_arriba":    null,
-    "toluca_abajo":     null,
-    "periferico_norte": null,
-    "periferico_sur":   null
+    "_nota": "Medido en campo: vehículos que cruzan la línea de parada en 60s de verde (sección E). Dividido entre 60.",
+    "_longitud_vehiculo_m": 4.1,
+    "queretaro_toluca": 1.313,
+    "toluca_norte":     0.292,
+    "lateral_norte":    1.567,
+    "lateral_sur_oeste": 1.317,
+    "_detalle": {
+      "queretaro_toluca":  "_estimado proporcional desde 105 veh/60s total Toluca ↑ × 0.75",
+      "toluca_norte":      "_estimado proporcional desde 105 veh/60s total Toluca ↑ × 0.25 / 1 carril",
+      "lateral_norte":     "_campo directo: 94 veh/60s",
+      "lateral_sur_oeste": "_campo directo: 79 veh/60s (2 carriles)"
+    }
   },
 
   "tiempos_semaforo_observados": {
-    "_descripcion": "Tiempos reales medidos en campo. Sección A de la hoja.",
-    "verde_toluca_s":     null,
-    "verde_periferico_s": null,
-    "amarillo_s":         null,
-    "ciclo_total_s":      null
+    "_nota": "Promedio de 3 ciclos medidos en campo (sección A). Mediodía, sin sensor de presencia.",
+    "verde_queretaro_toluca_s": 51,
+    "verde_lateral_norte_s": 47,
+    "verde_lateral_sur_oeste_s": 47,
+    "_nota_fase": "lateral_norte y lateral_sur_oeste tienen verde simultáneo (fase_2)",
+    "amarillo_s": 3,
+    "ciclo_total_s": 111
+  },
+
+  "fases_semaforo": {
+    "_descripcion": "3 fases reales observadas en campo.",
+    "fase_1": {
+      "nombre": "Verde Av. Querétaro/Toluca",
+      "duracion_s": 51,
+      "vialidades_verde": ["queretaro_toluca", "toluca_norte"],
+      "vialidades_rojo":  ["lateral_norte", "lateral_sur_oeste"],
+      "nota": "Zona H puede vaciarse hacia Av. Toluca sur y Lateral Sur este."
+    },
+    "amarillo_1": {
+      "nombre": "Amarillo transición 1→2",
+      "duracion_s": 3,
+      "vialidades_verde": [],
+      "vialidades_rojo":  ["queretaro_toluca", "toluca_norte", "lateral_norte", "lateral_sur_oeste"]
+    },
+    "fase_2": {
+      "nombre": "Verde Lateral Norte + Lateral Sur oeste",
+      "duracion_s": 47,
+      "vialidades_verde": ["lateral_norte", "lateral_sur_oeste"],
+      "vialidades_rojo":  ["queretaro_toluca", "toluca_norte"],
+      "nota": "CRÍTICO: zona H queda bloqueada. Lateral Norte entra a zona H pero no puede salir porque lateral_sur_oeste cruza perpendicularmente. Cola se acumula."
+    },
+    "amarillo_2": {
+      "nombre": "Amarillo transición 2→1",
+      "duracion_s": 3,
+      "vialidades_verde": [],
+      "vialidades_rojo":  ["queretaro_toluca", "toluca_norte", "lateral_norte", "lateral_sur_oeste"]
+    },
+    "_nota_vuelta_continua": "La vuelta continua de Lateral Sur oeste (→ Av. Toluca sur) NO tiene semáforo. Flujo libre en todo momento.",
+    "_nota_retorno": "El retorno zona H (Lateral Sur oeste → Lateral Norte) NO tiene semáforo. Flujo libre en todo momento."
   },
 
   "perfiles_conductor": {
-    "_descripcion": "Fracción estimada de cada perfil. Sección D de la hoja. Deben sumar 1.0.",
-    "agresivo":  null,
-    "normal":    null,
-    "cauteloso": null
+    "_nota": "Estimación visual sección D. Julián observó mediodía.",
+    "agresivo":  0.30,
+    "normal":    0.60,
+    "cauteloso": 0.10
   },
 
-  "fuente": "observacion_campo secciones A, C, D, E",
-  "fecha_calibracion": null
+  "tiempo_reaccion_verde_s": 1.0,
+  "hay_sensor_presencia": false,
+  "hay_fase_exclusiva_giro": false
 }

@@ -1,45 +1,66 @@
 {
   "_descripcion": "Probabilidades de movimiento por vialidad de entrada y periodo del día.",
-  "_estado": "PENDIENTE — llenar con conteos de sección C.2 de la hoja de observación",
+  "_fuente": "observacion_campo.docx sección C.2 — conteos reales de mediodía",
+  "_fecha_calibracion": "2026-05-19",
+
   "_periodos": {
-    "0": "madrugada (00:00–05:59)",
-    "1": "mañana_pico (06:00–09:59)",
-    "2": "mediodia (10:00–13:59)",
-    "3": "tarde_pico (14:00–19:59)",
-    "4": "noche (20:00–23:59)"
+    "0": "madrugada",
+    "1": "mañana_pico",
+    "2": "mediodia  ← DATOS REALES DE CAMPO",
+    "3": "tarde_pico",
+    "4": "noche"
   },
   "_movimientos": ["recto", "izquierda", "derecha"],
-  "_nota": "Los tres valores de cada entrada deben sumar 1.0",
+  "_nota": "Solo periodo 2 tiene datos reales. Otros periodos son estimaciones razonables.",
 
-  "toluca_arriba": {
-    "0": [null, null, null],
-    "1": [null, null, null],
-    "2": [null, null, null],
-    "3": [null, null, null],
-    "4": [null, null, null]
-  },
-  "toluca_abajo": {
-    "0": [null, null, null],
-    "1": [null, null, null],
-    "2": [null, null, null],
-    "3": [null, null, null],
-    "4": [null, null, null]
-  },
-  "periferico_norte": {
-    "0": [null, null, null],
-    "1": [null, null, null],
-    "2": [null, null, null],
-    "3": [null, null, null],
-    "4": [null, null, null]
-  },
-  "periferico_sur": {
-    "0": [null, null, null],
-    "1": [null, null, null],
-    "2": [null, null, null],
-    "3": [null, null, null],
-    "4": [null, null, null]
+  "_conteos_campo": {
+    "queretaro_toluca": "No medido directamente — se asume que todos van recto (hacia Av. Toluca sur o Lateral Sur este)",
+    "toluca_norte":     "No medido directamente — mismo supuesto",
+    "lateral_norte":    "Julián contó: 17 recto, 7 izquierda, 5 derecha = 29 total",
+    "lateral_sur_oeste":"Julián contó: 7 recto, 11 izquierda, 0 derecha = 18 total"
   },
 
-  "fuente": "observacion_campo sección C.2",
-  "fecha_calibracion": null
+  "_nota_lateral_norte": "izquierda = entrar a zona H (mayoría). recto = seguir por Lateral Norte oeste (minoría).",
+  "_nota_lateral_sur_oeste": "recto = cruzar a Lateral Sur este (los 2 carriles con semáforo). izquierda = retorno zona H (flujo independiente, sin semáforo).",
+  "_nota_queretaro_toluca": "Todos van hacia zona H y de ahí a Lateral Sur este o Av. Toluca sur.",
+
+  "queretaro_toluca": {
+    "_nota": "Todos entran a zona H. Destino final: ~87% Lateral Sur este (basado en dato Av. Toluca ↑ de Julián), ~13% Av. Toluca sur.",
+    "0": [1.0, 0.0, 0.0],
+    "1": [1.0, 0.0, 0.0],
+    "2": [1.0, 0.0, 0.0],
+    "3": [1.0, 0.0, 0.0],
+    "4": [1.0, 0.0, 0.0]
+  },
+
+  "toluca_norte": {
+    "_nota": "1 carril. Mismo comportamiento que queretaro_toluca.",
+    "0": [1.0, 0.0, 0.0],
+    "1": [1.0, 0.0, 0.0],
+    "2": [1.0, 0.0, 0.0],
+    "3": [1.0, 0.0, 0.0],
+    "4": [1.0, 0.0, 0.0]
+  },
+
+  "lateral_norte": {
+    "_conteo_real_periodo_2": [17, 7, 5],
+    "_proporciones_reales":   [0.5862, 0.2414, 0.1724],
+    "_nota": "recto=seguir Lateral Norte oeste, izquierda=entrar zona H, derecha=poco frecuente.",
+    "0": [0.50, 0.35, 0.15],
+    "1": [0.45, 0.40, 0.15],
+    "2": [0.5862, 0.2414, 0.1724],
+    "3": [0.45, 0.40, 0.15],
+    "4": [0.50, 0.35, 0.15]
+  },
+
+  "lateral_sur_oeste": {
+    "_conteo_real_periodo_2": [7, 11, 0],
+    "_proporciones_reales":   [0.3889, 0.6111, 0.0],
+    "_nota": "recto=cruzar a Lateral Sur este (semáforo), izquierda=retorno zona H (sin semáforo, flujo independiente).",
+    "0": [0.40, 0.60, 0.0],
+    "1": [0.35, 0.65, 0.0],
+    "2": [0.3889, 0.6111, 0.0],
+    "3": [0.35, 0.65, 0.0],
+    "4": [0.40, 0.60, 0.0]
+  }
 }
