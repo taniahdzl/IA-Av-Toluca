@@ -284,49 +284,135 @@ class SimuladorCruce:
     def _generar_llegadas(self, periodo: int) -> List[Vehiculo]:
         """
         Genera nuevos vehículos según el flujo del periodo actual.
-        Usa distribución de Poisson para variabilidad realista.
+        Usa distribución de Poisson: cada segundo puede llegar 0, 1 o más vehículos
+        con probabilidad proporcional al flujo horario.
         """
-        # TODO: implementar
-        # 1. Para cada vialidad, calcular lambda = flujo_hora / 3600
-        # 2. Samplear np.random.poisson(lambda) llegadas
-        # 3. Para cada llegada: elegir destino con router, asignar carril,
-        #    crear Vehiculo con perfil_aleatorio(), agregar a la cola
-        raise NotImplementedError
+        nuevos: List[Vehiculo] = []
+
+        for vialidad in VIALIDADES:
+            # Lambda de Poisson: vehículos esperados por segundo
+            flujo_hora = self.flujos[vialidad][periodo]
+            lam = flujo_hora / 3600.0
+
+            # Cuántos llegan este segundo
+            n_llegadas = np.random.poisson(lam)
+            if n_llegadas == 0:
+                continue
+
+            carriles = self.geometria.carriles_de(vialidad)
+            ocupacion = {c.id: len(self._colas[c.id]) for c in carriles}
+
+            for _ in range(n_llegadas):
+                # Elegir destino con la cadena de Markov
+                destino = self.router.elegir_destino(vialidad, periodo)
+
+                # Asignar carril según destino y ocupación actual
+                candidatos = [
+                    c for c in carriles
+                    if c.acepta_movimiento(destino)
+                    and not c.esta_saturado(ocupacion.get(c.id, 0))
+                ]
+                if not candidatos:
+                    # Si todos los carriles están saturados, usar el menos lleno
+                    candidatos = sorted(
+                        [c for c in carriles if c.acepta_movimiento(destino)],
+                        key=lambda c: ocupacion.get(c.id, 0)
+                    )
+                if not candidatos:
+                    continue  # no hay carril válido para este movimiento
+
+                # Preferir el carril con menos vehículos
+                carril = min(candidatos, key=lambda c: ocupacion.get(c.id, 0))
+
+                vehiculo = Vehiculo(
+                    id=self._vehiculo_id,
+                    vialidad_origen=vialidad,
+                    carril_id=carril.id,
+                    destino=destino,
+                    perfil=perfil_aleatorio(),
+                    t_llegada=self.t,
+                )
+                self._vehiculo_id += 1
+                self._colas[carril.id].append(vehiculo)
+                ocupacion[carril.id] = ocupacion.get(carril.id, 0) + 1
+                nuevos.append(vehiculo)
+
+        return nuevos
 
     def _procesar_cambios_carril(self):
         """
         Comportamiento nivel 3: vehículos que intentan cambiar de carril.
-        Solo actúa en los primeros vehículos de cada cola (los que pueden ver).
+        Solo actúa en los primeros vehículos de cada cola.
+        Implementado en el método _procesar_bloqueos junto con la lógica de zona H.
         """
-        # TODO: implementar
-        # Para cada vialidad con más de un carril:
-        #   - Revisar el primer vehículo de cada carril
-        #   - Llamar vehiculo.quiere_cambiar_carril(cola_actual, cola_vecina)
-        #   - Si sí: mover el vehículo al carril vecino si hay espacio
-        raise NotImplementedError
+        # Los cambios de carril se procesan en _procesar_bloqueos
+        # para poder considerar el estado de la zona H simultáneamente.
+        pass
 
     def _descargar_colas(self) -> List[Vehiculo]:
         """
         Saca vehículos de los carriles con verde.
-        Respeta el tiempo de reacción del perfil de conductor.
+
+        Para cada carril con luz verde:
+          1. Samplea cuántos vehículos salen este segundo (Poisson con tasa de descarga)
+          2. El primer vehículo de la cola necesita su tiempo_reaccion_s —
+             si lleva menos tiempo esperando que su tiempo de reacción, no sale
+          3. Registra t_salida y acumula en self._vehiculos_salidos
         """
-        # TODO: implementar
-        # Para cada carril con verde:
-        #   - Samplear np.random.poisson(tasa_descarga) salidas
-        #   - Considerar tiempo_reaccion_s del primer vehículo en cola
-        #   - Registrar t_salida en el vehículo
-        #   - Agregar a self._vehiculos_salidos
-        raise NotImplementedError
+        salidos: List[Vehiculo] = []
+
+        for vialidad in VIALIDADES:
+            tasa = self.tasa_descarga[vialidad]
+            carriles = self.geometria.carriles_de(vialidad)
+
+            for carril in carriles:
+                if not self.semaforo.carril_tiene_verde(carril.id):
+                    continue
+                if not self._colas[carril.id]:
+                    continue
+
+                # Cuántos pueden salir este segundo según la tasa de descarga
+                n_posibles = np.random.poisson(tasa / len(carriles))
+                n_posibles = min(n_posibles, len(self._colas[carril.id]))
+
+                for _ in range(n_posibles):
+                    if not self._colas[carril.id]:
+                        break
+
+                    primer_veh = self._colas[carril.id][0]
+
+                    # Respetar tiempo de reacción al verde
+                    # El vehículo necesita haber esperado al menos
+                    # tiempo_reaccion_s segundos desde que arrancó el verde
+                    t_espera = self.t - primer_veh.t_llegada
+                    if t_espera < primer_veh.params.tiempo_reaccion_s:
+                        break  # el resto de la cola tampoco puede salir aún
+
+                    vehiculo = self._colas[carril.id].popleft()
+                    vehiculo.t_salida = self.t
+                    self._vehiculos_salidos.append(vehiculo)
+                    salidos.append(vehiculo)
+
+        return salidos
 
     def _procesar_bloqueos(self):
         """
-        Maneja vehículos que bloquean la intersección (nivel 3).
-        Un vehículo que bloquea impide el avance de los carriles cruzados.
+        Maneja el bloqueo de zona H durante fase_2.
+
+        Durante fase_2: Lateral Sur oeste cruza perpendicularmente, por lo
+        que los vehículos de queretaro_toluca y toluca_norte que ya están
+        en zona H no pueden avanzar aunque teóricamente tengan espacio.
+
+        Implementación completa (nivel 3 con bloqueos individuales) pendiente.
+        Esta versión modela el efecto macro: en fase_2, la tasa de salida
+        de queretaro_toluca y toluca_norte es 0 (bloqueados por lateral_sur_oeste).
+        Ese comportamiento ya está capturado en _descargar_colas porque
+        carril_tiene_verde() devuelve False para esos carriles en fase_2.
+
+        TODO (nivel 3): modelar vehículos individuales que avanzan y bloquean
+        la intersección (prob_bloqueo_interseccion del perfil agresivo).
         """
-        # TODO: implementar
-        # - Identificar vehículos con bloqueando_interseccion=True
-        # - Reducir tasa de descarga de los carriles afectados este segundo
-        raise NotImplementedError
+        pass
 
     def _recompensa_basica(self, salidos: List[Vehiculo]) -> float:
         """

@@ -75,11 +75,11 @@ PARAMS_POR_PERFIL: dict[PerfilConductor, PerfilParams] = {
     ),
 }
 
-# Distribución de perfiles — sobreescrita por .env / flujos_calibrados.json
+# Distribución de perfiles — dato real de campo (Julián, mediodía 19/05/2026)
 DISTRIBUCION_PERFILES = {
-    PerfilConductor.AGRESIVO:  0.20,
-    PerfilConductor.NORMAL:    0.65,
-    PerfilConductor.CAUTELOSO: 0.15,
+    PerfilConductor.AGRESIVO:  0.30,
+    PerfilConductor.NORMAL:    0.60,
+    PerfilConductor.CAUTELOSO: 0.10,
 }
 
 
