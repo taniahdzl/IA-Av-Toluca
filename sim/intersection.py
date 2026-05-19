@@ -137,6 +137,7 @@ class SimuladorCruce:
             for c in self.geometria.todos_los_carriles()
         }
         self._vehiculos_salidos: List[Vehiculo] = []
+        self._n_bloqueadores_activos: int = 0
 
     def step(self, accion: Optional[int] = None) -> Tuple[np.ndarray, float, dict]:
         """
@@ -197,6 +198,7 @@ class SimuladorCruce:
             "salidos_step": len(salidos),
             "nuevos_step":  len(nuevos),
             "semaforo":     self.semaforo.get_estado(),
+            "n_bloqueadores": self._n_bloqueadores_activos,
         }
 
         return self.get_estado(), recompensa, info
@@ -341,13 +343,34 @@ class SimuladorCruce:
 
     def _procesar_cambios_carril(self):
         """
-        Comportamiento nivel 3: vehículos que intentan cambiar de carril.
-        Solo actúa en los primeros vehículos de cada cola.
-        Implementado en el método _procesar_bloqueos junto con la lógica de zona H.
+        Comportamiento nivel 3: vehículos al frente de la cola que intentan
+        cambiar a un carril vecino menos congestionado dentro de su misma vialidad.
         """
-        # Los cambios de carril se procesan en _procesar_bloqueos
-        # para poder considerar el estado de la zona H simultáneamente.
-        pass
+        for vialidad in VIALIDADES:
+            carriles = self.geometria.carriles_de(vialidad)
+            if len(carriles) < 2:
+                continue
+            for i, carril in enumerate(carriles):
+                if not self._colas[carril.id]:
+                    continue
+                primer_veh = self._colas[carril.id][0]
+                cola_actual = len(self._colas[carril.id])
+                vecinos = []
+                if i > 0:
+                    vecinos.append(carriles[i - 1])
+                if i < len(carriles) - 1:
+                    vecinos.append(carriles[i + 1])
+                for vecino in vecinos:
+                    if not vecino.acepta_movimiento(primer_veh.destino):
+                        continue
+                    cola_vecina = len(self._colas[vecino.id])
+                    if not primer_veh.quiere_cambiar_carril(cola_actual, cola_vecina):
+                        continue
+                    self._colas[carril.id].popleft()
+                    primer_veh.carril_id = vecino.id
+                    primer_veh.intentos_cambio_carril += 1
+                    self._colas[vecino.id].appendleft(primer_veh)
+                    break
 
     def _descargar_colas(self) -> List[Vehiculo]:
         """
@@ -397,22 +420,56 @@ class SimuladorCruce:
 
     def _procesar_bloqueos(self):
         """
-        Maneja el bloqueo de zona H durante fase_2.
+        Modela dos fenómenos de bloqueo del cruce:
 
-        Durante fase_2: Lateral Sur oeste cruza perpendicularmente, por lo
-        que los vehículos de queretaro_toluca y toluca_norte que ya están
-        en zona H no pueden avanzar aunque teóricamente tengan espacio.
+        1. Avance en amarillo: conductores agresivos de queretaro_toluca y
+           toluca_norte cruzan aunque el semáforo ya cambió a amarillo.
 
-        Implementación completa (nivel 3 con bloqueos individuales) pendiente.
-        Esta versión modela el efecto macro: en fase_2, la tasa de salida
-        de queretaro_toluca y toluca_norte es 0 (bloqueados por lateral_sur_oeste).
-        Ese comportamiento ya está capturado en _descargar_colas porque
-        carril_tiene_verde() devuelve False para esos carriles en fase_2.
-
-        TODO (nivel 3): modelar vehículos individuales que avanzan y bloquean
-        la intersección (prob_bloqueo_interseccion del perfil agresivo).
+        2. Bloqueo de zona H (fase_2): conductores agresivos que se metieron
+           a la intersección en el último instante de fase_1 quedan físicamente
+           bloqueando lateral_sur_oeste, reduciendo su tasa de descarga efectiva.
         """
-        pass
+        # ── Fenómeno 1: avance en amarillo ───────────────────
+        # Amarillo después de fase_1 (fase_idx == 1)
+        if self.semaforo.es_amarillo() and self.semaforo._fase_idx == 1:
+            for vialidad in ["queretaro_toluca", "toluca_norte"]:
+                for carril in self.geometria.carriles_de(vialidad):
+                    if not self._colas[carril.id]:
+                        continue
+                    primer_veh = self._colas[carril.id][0]
+                    if primer_veh.avanza_en_amarillo():
+                        veh = self._colas[carril.id].popleft()
+                        veh.t_salida = self.t
+                        self._vehiculos_salidos.append(veh)
+
+        # ── Fenómeno 2: bloqueo de intersección en fase_2 ────
+        if self.semaforo.zona_H_bloqueada():
+            n_bloqueadores = 0
+            for vialidad in ["queretaro_toluca", "toluca_norte"]:
+                for carril in self.geometria.carriles_de(vialidad):
+                    if not self._colas[carril.id]:
+                        continue
+                    primer_veh = self._colas[carril.id][0]
+                    if not primer_veh.bloqueando_interseccion:
+                        if primer_veh.intentara_bloquear():
+                            primer_veh.bloqueando_interseccion = True
+                    if primer_veh.bloqueando_interseccion:
+                        n_bloqueadores += 1
+
+            # Cada bloqueador reduce ~25% la tasa efectiva de lateral_sur_oeste
+            # Esto se registra en el info dict para que el agente lo observe
+            if n_bloqueadores > 0:
+                self._n_bloqueadores_activos = n_bloqueadores
+            else:
+                self._n_bloqueadores_activos = 0
+
+        # ── Limpiar bloqueadores al terminar fase_2 ───────────
+        if self.semaforo.es_amarillo() and self.semaforo._fase_idx == 3:
+            for vialidad in ["queretaro_toluca", "toluca_norte"]:
+                for carril in self.geometria.carriles_de(vialidad):
+                    for veh in self._colas[carril.id]:
+                        veh.bloqueando_interseccion = False
+            self._n_bloqueadores_activos = 0
 
     def _recompensa_basica(self, salidos: List[Vehiculo]) -> float:
         """

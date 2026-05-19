@@ -133,38 +133,44 @@ class Vehiculo:
     def quiere_cambiar_carril(self, cola_actual: int, cola_vecina: int) -> bool:
         """
         Decide si intenta cambiar al carril vecino.
-        Depende del perfil y de qué tan diferente es la cola.
+
+        Reglas:
+        - Solo considera cambio si la cola vecina es al menos 3 vehículos
+          menor (umbral fijo para evitar cambios por diferencias triviales)
+        - La probabilidad base viene del perfil
+        - Limita a 2 intentos por vehículo para evitar zigzag
         """
-        # TODO: implementar lógica nivel 3
-        # Considerar:
-        #   - prob_cambio_carril del perfil
-        #   - diferencia entre cola_actual y cola_vecina (umbral mínimo)
-        #   - límite de intentos_cambio_carril para evitar zigzag
-        raise NotImplementedError
+        if self.intentos_cambio_carril >= 2:
+            return False
+        if cola_vecina >= cola_actual - 2:
+            return False  # no vale la pena cambiar
+        return random.random() < self.params.prob_cambio_carril
 
     def acepta_brecha(self, brecha_disponible: int) -> bool:
         """
-        Decide si la brecha en el tráfico cruzado es suficiente para girar.
-        Un conductor agresivo acepta brechas más pequeñas.
+        Decide si la brecha en el flujo cruzado es suficiente para avanzar.
+        brecha_disponible = vehículos de separación con el próximo que cruza.
+        Un agresivo acepta brechas mínimas, un cauteloso necesita más espacio.
         """
-        # TODO: implementar
-        # brecha_disponible = número de vehículos de separación en el flujo cruzado
-        raise NotImplementedError
+        return brecha_disponible >= self.params.brecha_minima_giro
 
     def intentara_bloquear(self) -> bool:
         """
-        Decide si avanza aunque no quepa en la intersección.
-        Solo conductores agresivos lo hacen con cierta probabilidad.
+        Decide si avanza a la intersección aunque no quepa del otro lado.
+        Solo conductores agresivos lo hacen, con probabilidad calibrada en campo.
+        Un vehículo que bloquea queda marcado con bloqueando_interseccion=True
+        y reduce la tasa de descarga de los carriles cruzados.
         """
-        # TODO: implementar
-        raise NotImplementedError
+        if self.perfil != PerfilConductor.AGRESIVO:
+            return False
+        return random.random() < self.params.prob_bloqueo_interseccion
 
     def avanza_en_amarillo(self) -> bool:
         """
-        Decide si cruza cuando el semáforo ya está en amarillo tardío.
+        Decide si cruza cuando el semáforo ya cambió a amarillo.
+        El tiempo de reacción del perfil determina si alcanza a frenar o no.
         """
-        # TODO: implementar
-        raise NotImplementedError
+        return random.random() < self.params.prob_avanza_amarillo
 
     def __repr__(self) -> str:
         estado = f"esperando desde t={self.t_llegada}" if not self.ya_salio \
