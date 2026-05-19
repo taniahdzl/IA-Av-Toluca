@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cruce Av. Toluca × Periférico — Demo RL</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 12px 24px;
+    background: #1a1d27;
+    border-bottom: 1px solid #2d3148;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+  header .subtitle { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  .badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500;
+  }
+  .badge-rl  { background: #1e3a5f; color: #60a5fa; }
+  .badge-fijo { background: #2d1f3d; color: #a78bfa; }
+
+  /* ── Layout principal ── */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 0;
+  }
+
+  /* ── Canvas del cruce ── */
+  .canvas-wrap {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  canvas#cruce {
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 1;
+    background: #1a1d27;
+    border-radius: 12px;
+    border: 1px solid #2d3148;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* ── Panel derecho ── */
+  .panel {
+    background: #1a1d27;
+    border-left: 1px solid #2d3148;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  .panel-section h2 {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 12px;
+  }
+
+  /* Métricas en tiempo real */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .metric-card {
+    background: #0f1117;
+    border: 1px solid #2d3148;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+
+  .metric-card .label {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+
+  .metric-card .value {
+    font-size: 22px;
+    font-weight: 600;
+    color: #e2e8f0;
+    line-height: 1;
+  }
+
+  .metric-card .value.green { color: #4ade80; }
+  .metric-card .value.yellow { color: #facc15; }
+  .metric-card .value.red { color: #f87171; }
+
+  /* Barras de cola por vialidad */
+  .queue-bars { display: flex; flex-direction: column; gap: 8px; }
+
+  .queue-row { display: flex; flex-direction: column; gap: 3px; }
+
+  .queue-row .row-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .queue-row .bar-bg {
+    height: 8px;
+    background: #2d3148;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .queue-row .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .3s ease;
+    background: #3b82f6;
+  }
+
+  .queue-row .bar-fill.warn  { background: #f59e0b; }
+  .queue-row .bar-fill.danger { background: #ef4444; }
+
+  /* Semáforo visual */
+  .semaforo-visual {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: #0f1117;
+    border-radius: 8px;
+    border: 1px solid #2d3148;
+  }
+
+  .via-semaforo { text-align: center; }
+
+  .via-semaforo .via-label {
+    font-size: 10px;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+
+  .luz {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin: 0 auto;
+    transition: background .3s;
+  }
+
+  .luz.verde   { background: #4ade80; box-shadow: 0 0 8px #4ade8088; }
+  .luz.rojo    { background: #374151; }
+  .luz.amarillo { background: #facc15; box-shadow: 0 0 8px #facc1588; }
+
+  /* Controles */
+  .controls { display: flex; flex-direction: column; gap: 8px; }
+
+  .controls button {
+    padding: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #2d3148;
+    background: #0f1117;
+    color: #e2e8f0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .controls button:hover { background: #2d3148; }
+  .controls button.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
+
+  .speed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  .speed-row input[type=range] { flex: 1; accent-color: #3b82f6; }
+
+  /* Tiempo de simulación */
+  .sim-time {
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Cruce Av. Toluca × Anillo Periférico</h1>
+    <div class="subtitle">Optimización de semáforo con Aprendizaje por Refuerzo</div>
+  </div>
+  <span class="badge badge-fijo" id="modo-badge">Semáforo fijo</span>
+</header>
+
+<main>
+  <!-- Canvas del cruce -->
+  <div class="canvas-wrap">
+    <canvas id="cruce" width="560" height="560"></canvas>
+    <div class="sim-time" id="sim-time">t = 0 s</div>
+  </div>
+
+  <!-- Panel derecho -->
+  <div class="panel">
+
+    <!-- Semáforo visual -->
+    <div class="panel-section">
+      <h2>Semáforo</h2>
+      <div class="semaforo-visual">
+        <div class="via-semaforo">
+          <div class="via-label">Av. Toluca</div>
+          <div class="luz rojo" id="luz-toluca"></div>
+        </div>
+        <div class="via-semaforo">
+          <div class="via-label">Periférico</div>
+          <div class="luz rojo" id="luz-periferico"></div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#64748b; text-align:center; margin-top:8px;" id="fase-label">—</div>
+    </div>
+
+    <!-- Métricas en tiempo real -->
+    <div class="panel-section">
+      <h2>Métricas en tiempo real</h2>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="label">Cola total</div>
+          <div class="value" id="m-cola-total">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Salidos / min</div>
+          <div class="value green" id="m-salidos">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Verde Toluca</div>
+          <div class="value" id="m-verde-toluca">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="label">Verde Periférico</div>
+          <div class="value" id="m-verde-peri">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colas por vialidad -->
+    <div class="panel-section">
+      <h2>Cola por vialidad</h2>
+      <div class="queue-bars" id="queue-bars"></div>
+    </div>
+
+    <!-- Controles -->
+    <div class="panel-section">
+      <h2>Controles</h2>
+      <div class="controls">
+        <button id="btn-pausa" onclick="togglePausa()">⏸ Pausar</button>
+        <button id="btn-reset" onclick="resetSim()">↺ Reiniciar</button>
+      </div>
+      <div class="speed-row" style="margin-top:10px;">
+        <span>Velocidad</span>
+        <input type="range" min="1" max="60" value="5" id="speed-slider"
+               oninput="setSpeed(this.value)">
+        <span id="speed-label">5×</span>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ── Estado del frontend ───────────────────────────────────────
+let pausado = false;
+let frame = null;
+
+const VIALIDADES = ["toluca_arriba", "toluca_abajo", "periferico_norte", "periferico_sur"];
+const LABELS = {
+  toluca_arriba:    "Tol. →Periférico",
+  toluca_abajo:     "Tol. →Revolución",
+  periferico_norte: "Periférico Norte",
+  periferico_sur:   "Periférico Sur",
+};
+
+// ── Canvas ────────────────────────────────────────────────────
+const canvas = document.getElementById("cruce");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
+const CX = W / 2, CY = H / 2;
+
+// Dimensiones del cruce en el canvas
+const ANCHO_VIA = 60;
+const LARGO_COLA_MAX_PX = 180;
+
+function dibujarCruce(f) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Fondo
+  ctx.fillStyle = "#1a1d27";
+  ctx.fillRect(0, 0, W, H);
+
+  // Asfalto — vías
+  ctx.fillStyle = "#2d3148";
+  // Av. Toluca (vertical)
+  ctx.fillRect(CX - ANCHO_VIA, 0, ANCHO_VIA * 2, H);
+  // Periférico (horizontal)
+  ctx.fillRect(0, CY - ANCHO_VIA, W, ANCHO_VIA * 2);
+
+  // Líneas centrales
+  ctx.setLineDash([12, 8]);
+  ctx.strokeStyle = "#4a5568";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(CX, 0); ctx.lineTo(CX, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, CY); ctx.lineTo(W, CY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (!f) return;
+
+  // Colas por vialidad
+  const configs = {
+    toluca_arriba:    { axis: "y", dir: 1,  origin: [CX - ANCHO_VIA / 2, CY + ANCHO_VIA] },
+    toluca_abajo:     { axis: "y", dir: -1, origin: [CX + ANCHO_VIA / 2, CY - ANCHO_VIA] },
+    periferico_norte: { axis: "x", dir: 1,  origin: [CX - ANCHO_VIA, CY - ANCHO_VIA / 2] },
+    periferico_sur:   { axis: "x", dir: -1, origin: [CX + ANCHO_VIA, CY + ANCHO_VIA / 2] },
+  };
+
+  for (const [via, d] of Object.entries(configs)) {
+    const vd = f.vialidades[via];
+    if (!vd) continue;
+    const pct = vd.pct_ocupacion;
+    const longPx = pct * LARGO_COLA_MAX_PX;
+
+    // Color de la barra según saturación
+    const color = vd.saturada ? "#ef4444"
+                : pct > 0.6    ? "#f59e0b"
+                :                "#3b82f6";
+
+    ctx.fillStyle = color + "99";
+    if (d.axis === "y") {
+      const w = ANCHO_VIA - 6;
+      ctx.fillRect(d.origin[0] - w / 2 + 3, d.origin[1],
+                   w, d.dir * longPx);
+    } else {
+      const h = ANCHO_VIA - 6;
+      ctx.fillRect(d.origin[0], d.origin[1] - h / 2 + 3,
+                   d.dir * longPx, h);
+    }
+
+    // Número de vehículos
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "bold 13px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const tx = d.axis === "y" ? d.origin[0] : d.origin[0] + d.dir * (longPx + 18);
+    const ty = d.axis === "y" ? d.origin[1] + d.dir * (longPx + 18) : d.origin[1];
+    ctx.fillText(vd.cola, tx, ty);
+  }
+
+  // Semáforos en las esquinas de la intersección
+  dibujarSemaforo(f, CX - ANCHO_VIA - 14, CY - ANCHO_VIA - 14, f.vialidades.toluca_arriba?.color_semaforo);
+  dibujarSemaforo(f, CX + ANCHO_VIA + 2,  CY - ANCHO_VIA - 14, f.vialidades.toluca_abajo?.color_semaforo);
+  dibujarSemaforo(f, CX - ANCHO_VIA - 14, CY + ANCHO_VIA + 2,  f.vialidades.periferico_norte?.color_semaforo);
+  dibujarSemaforo(f, CX + ANCHO_VIA + 2,  CY + ANCHO_VIA + 2,  f.vialidades.periferico_sur?.color_semaforo);
+
+  // Etiqueta central
+  ctx.fillStyle = "#0f1117";
+  ctx.fillRect(CX - 30, CY - 12, 60, 24);
+  ctx.fillStyle = "#64748b";
+  ctx.font = "10px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("bajo nivel", CX, CY);
+}
+
+function dibujarSemaforo(f, x, y, color) {
+  const r = 7;
+  ctx.beginPath();
+  ctx.arc(x + r, y + r, r, 0, Math.PI * 2);
+  const col = color === "green"  ? "#4ade80"
+            : color === "yellow" ? "#facc15"
+            :                      "#374151";
+  ctx.fillStyle = col;
+  ctx.fill();
+}
+
+// ── Polling del servidor ──────────────────────────────────────
+
+async function fetchFrame() {
+  try {
+    const res = await fetch("/sim/frame");
+    if (!res.ok) return;
+    frame = await res.json();
+    actualizarUI(frame);
+  } catch (e) { /* servidor no disponible aún */ }
+}
+
+function actualizarUI(f) {
+  if (!f) return;
+
+  // Canvas
+  dibujarCruce(f);
+
+  // Tiempo
+  document.getElementById("sim-time").textContent =
+    `t = ${f.t.toLocaleString()} s  (${formatHora(f.t)})`;
+
+  // Métricas
+  const cola = f.metricas.cola_total;
+  const mCola = document.getElementById("m-cola-total");
+  mCola.textContent = cola;
+  mCola.className = "value" + (cola > 80 ? " red" : cola > 40 ? " yellow" : "");
+  document.getElementById("m-salidos").textContent = f.metricas.salidos_ultimo_min;
+  document.getElementById("m-verde-toluca").textContent =
+    (f.semaforo.duracion_toluca ?? "—") + "s";
+  document.getElementById("m-verde-peri").textContent =
+    (f.semaforo.duracion_periferico ?? "—") + "s";
+
+  // Semáforos
+  actualizarLuz("luz-toluca",     f.vialidades.toluca_arriba?.color_semaforo);
+  actualizarLuz("luz-periferico", f.vialidades.periferico_norte?.color_semaforo);
+  document.getElementById("fase-label").textContent =
+    (f.semaforo.fase ?? "").replace(/_/g, " ") +
+    ` — ${f.semaforo.tiempo_restante ?? "?"}s restantes`;
+
+  // Barras de cola
+  const wrap = document.getElementById("queue-bars");
+  wrap.innerHTML = "";
+  for (const via of VIALIDADES) {
+    const vd = f.vialidades[via];
+    if (!vd) continue;
+    const pct = Math.round(vd.pct_ocupacion * 100);
+    const colorClass = vd.saturada ? "danger" : pct > 60 ? "warn" : "";
+    wrap.innerHTML += `
+      <div class="queue-row">
+        <div class="row-header">
+          <span>${LABELS[via]}</span>
+          <span>${vd.cola} / ${vd.capacidad} veh</span>
+        </div>
+        <div class="bar-bg">
+          <div class="bar-fill ${colorClass}" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }
+}
+
+function actualizarLuz(id, color) {
+  const el = document.getElementById(id);
+  el.className = "luz " + (color === "green" ? "verde" : color === "yellow" ? "amarillo" : "rojo");
+}
+
+function formatHora(t) {
+  const totalMin = Math.floor(t / 60);
+  const h = (7 + Math.floor(totalMin / 60)) % 24;
+  const m = totalMin % 60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+}
+
+// ── Controles ─────────────────────────────────────────────────
+
+async function togglePausa() {
+  pausado = !pausado;
+  const btn = document.getElementById("btn-pausa");
+  btn.textContent = pausado ? "▶ Reanudar" : "⏸ Pausar";
+  btn.className = pausado ? "active" : "";
+  await fetch(`/sim/control?accion=${pausado ? "pausar" : "reanudar"}`, { method: "POST" });
+}
+
+async function resetSim() {
+  await fetch("/sim/reset");
+}
+
+async function setSpeed(val) {
+  document.getElementById("speed-label").textContent = val + "×";
+  await fetch(`/sim/control?accion=velocidad&valor=${val}`, { method: "POST" });
+}
+
+// ── Loop principal ────────────────────────────────────────────
+
+setInterval(fetchFrame, 100);   // 10 fps
+fetchFrame();
+</script>
+</body>
+</html>
