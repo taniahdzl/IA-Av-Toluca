@@ -215,9 +215,31 @@ class SimuladorCruce:
         [5]   índice de fase actual (normalizado a [0,1])
         [6]   periodo del día (normalizado a [0,1])
         """
-        # TODO: implementar
-        # Usar self.geometria.capacidad_total(v) como denominador de normalización
-        raise NotImplementedError
+        # [0-3] Cola normalizada por vialidad
+        colas_norm = []
+        for v in VIALIDADES:
+            capacidad = max(self.geometria.capacidad_total(v), 1)
+            cola = sum(
+                len(self._colas[c.id])
+                for c in self.geometria.carriles_de(v)
+                if c.id in self._colas
+            )
+            colas_norm.append(min(cola / capacidad, 1.0))
+
+        # [4] Tiempo restante normalizado (máximo posible = 120s)
+        t_restante_norm = self.semaforo.tiempo_restante() / 120.0
+
+        # [5] Fase actual normalizada
+        n_fases = len(self.semaforo._fases)
+        fase_norm = self.semaforo._fase_idx / max(n_fases - 1, 1)
+
+        # [6] Periodo del día normalizado
+        periodo_norm = self._get_periodo() / 4.0
+
+        return np.array(
+            colas_norm + [t_restante_norm, fase_norm, periodo_norm],
+            dtype=np.float32
+        )
 
     def get_colas(self) -> Dict[str, deque]:
         """Devuelve las colas actuales (referencia, no copia)."""
