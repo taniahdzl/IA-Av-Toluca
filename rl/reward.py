@@ -116,11 +116,42 @@ def reward_con_flickering(info: dict) -> float:
 
 # ── Selector de función activa ────────────────────────────────
 
+
+def reward_ponderada(info: dict) -> float:
+    """
+    Recompensa ponderada por volumen real de cada vialidad.
+    Penaliza más fuerte las colas de alto volumen (queretaro_toluca, lateral_norte).
+    """
+    PESOS = {
+        "que_tol": 2165 / 2011,
+        "tol_nor": 722  / 2011,
+        "lat_nor": 2400 / 2011,
+        "lat_sur": 1.0,
+    }
+    PREFIJOS = {
+        "que_tol": ["que_tol_1", "que_tol_2", "que_tol_3"],
+        "tol_nor": ["tol_nor_1"],
+        "lat_nor": ["lat_nor_1", "lat_nor_2", "lat_nor_3", "lat_nor_4"],
+        "lat_sur": ["lat_sur_1", "lat_sur_2"],
+    }
+    penalizacion_colas = sum(
+        PESOS[g] * sum(info["colas"].get(p, 0) for p in ps) * W_COLA
+        for g, ps in PREFIJOS.items()
+    )
+    premio_salidas = info["salidos_step"] * W_SALIDA
+    penalizacion_bloqueo = info.get("n_bloqueadores", 0) * 15.0
+    n_saturados = sum(
+        1 for cid, q in info["colas"].items()
+        if _esta_saturado(cid, q, info)
+    )
+    return -penalizacion_colas + premio_salidas - penalizacion_bloqueo - n_saturados * W_SATURACION
+
 FUNCIONES: Dict[str, Callable[[dict], float]] = {
     "simple":      reward_simple,
     "balanceada":  reward_balanceada,
     "equidad":     reward_equidad,
     "flickering":  reward_con_flickering,
+    "ponderada":   reward_ponderada,
 }
 
 
