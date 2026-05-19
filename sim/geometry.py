@@ -91,22 +91,40 @@ class GeometriaCruce:
     @classmethod
     def dummy(cls) -> "GeometriaCruce":
         """
-        Geometría de placeholder para desarrollo y tests.
-        Usa valores razonables hasta tener datos reales.
+        Geometría real del cruce basada en HTML source of truth
+        y datos de campo (longitudes pendientes de medición completa).
         """
         carriles: Dict[str, List[Carril]] = {}
         configuraciones = {
-            "toluca_arriba":    [(1, ["recto", "izquierda"], 80.0),
-                                 (2, ["recto", "derecha"],   80.0)],
-            "toluca_abajo":     [(1, ["recto", "izquierda"], 80.0),
-                                 (2, ["recto", "derecha"],   80.0)],
-            "periferico_norte": [(1, ["recto", "derecha"],   60.0)],
-            "periferico_sur":   [(1, ["recto", "izquierda"], 60.0)],
+            # Av. Querétaro diagonal → Av. Toluca: 3 carriles, todos recto hacia zona H
+            "queretaro_toluca": [
+                (1, ["recto"], 60.0),
+                (2, ["recto"], 60.0),
+                (3, ["recto"], 60.0),
+            ],
+            # Av. Toluca norte: 1 carril, longitud real 20m (medida en campo)
+            "toluca_norte": [
+                (1, ["recto", "izquierda"], 20.0),
+            ],
+            # Lateral Norte ← oeste: 4 carriles
+            # mayoría vira izquierda a zona H, minoría sigue recto
+            "lateral_norte": [
+                (1, ["izquierda"],           60.0),
+                (2, ["izquierda", "recto"],  60.0),
+                (3, ["izquierda", "recto"],  60.0),
+                (4, ["recto"],               60.0),
+            ],
+            # Lateral Sur oeste: solo 2 carriles rectos con semáforo
+            # (retorno y vuelta continua son flujos independientes sin semáforo)
+            "lateral_sur_oeste": [
+                (1, ["recto"], 60.0),
+                (2, ["recto"], 60.0),
+            ],
         }
         for vialidad, configs in configuraciones.items():
             carriles[vialidad] = [
                 Carril(
-                    id=f"{vialidad}_c{num}",
+                    id=f"{_id_prefijo(vialidad)}_{num}",
                     vialidad=vialidad,
                     numero=num,
                     movimientos_permitidos=movs,
@@ -114,7 +132,7 @@ class GeometriaCruce:
                 )
                 for num, movs, longitud in configs
             ]
-        return cls(carriles=carriles)
+        return cls(carriles=carriles, longitud_vehiculo_m=4.1)
 
     # ── Consultas ────────────────────────────────────────────
 
@@ -142,3 +160,14 @@ class GeometriaCruce:
     def todos_los_carriles(self) -> List[Carril]:
         """Lista plana de todos los carriles del cruce."""
         return [c for carriles in self.carriles.values() for c in carriles]
+
+
+def _id_prefijo(vialidad: str) -> str:
+    """Convierte nombre de vialidad a prefijo corto para ids de carril."""
+    prefijos = {
+        "queretaro_toluca":  "que_tol",
+        "toluca_norte":      "tol_nor",
+        "lateral_norte":     "lat_nor",
+        "lateral_sur_oeste": "lat_sur",
+    }
+    return prefijos.get(vialidad, vialidad[:7])

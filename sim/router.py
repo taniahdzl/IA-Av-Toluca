@@ -67,16 +67,34 @@ class MarkovRouter:
     @classmethod
     def dummy(cls) -> "MarkovRouter":
         """
-        Matriz de placeholder con valores razonables para desarrollo y tests.
-        Reemplazar con datos reales tras la visita de campo.
+        Matriz calibrada con datos de campo de Julián (mediodía 19/05/2026).
+        Periodos distintos al 2 son estimaciones.
         """
-        vialidades = ["toluca_arriba", "toluca_abajo", "periferico_norte", "periferico_sur"]
-        matriz: Dict[str, Dict[str, List[float]]] = {}
-        for v in vialidades:
-            matriz[v] = {
-                str(p): [0.70, 0.15, 0.15]   # [recto, izq, der]
-                for p in range(5)
-            }
+        # [p_recto, p_izquierda, p_derecha]
+        matriz: Dict[str, Dict[str, List[float]]] = {
+            # Av. Querétaro/Toluca: todos van recto hacia zona H
+            "queretaro_toluca": {str(p): [1.0, 0.0, 0.0] for p in range(5)},
+            # Av. Toluca norte: igual, 1 carril recto
+            "toluca_norte":     {str(p): [1.0, 0.0, 0.0] for p in range(5)},
+            # Lateral Norte: mayoría izquierda (zona H), minoría recto
+            # Datos reales periodo 2: 17 recto, 7 izq, 5 der de 29 total
+            "lateral_norte": {
+                "0": [0.50, 0.35, 0.15],
+                "1": [0.45, 0.40, 0.15],
+                "2": [0.5862, 0.2414, 0.1724],
+                "3": [0.45, 0.40, 0.15],
+                "4": [0.50, 0.35, 0.15],
+            },
+            # Lateral Sur oeste: recto=cruzar a lateral sur este, izq=retorno
+            # Datos reales periodo 2: 7 recto, 11 izq, 0 der de 18 total
+            "lateral_sur_oeste": {
+                "0": [0.40, 0.60, 0.0],
+                "1": [0.35, 0.65, 0.0],
+                "2": [0.3889, 0.6111, 0.0],
+                "3": [0.35, 0.65, 0.0],
+                "4": [0.40, 0.60, 0.0],
+            },
+        }
         return cls(matriz)
 
     # ── Decisiones ───────────────────────────────────────────

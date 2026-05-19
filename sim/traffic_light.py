@@ -1,9 +1,22 @@
 """
 sim/traffic_light.py
 ────────────────────
-Semáforo con fases configurables.
-Los tiempos iniciales vienen de data/processed/flujos_calibrados.json
-(sección A de la hoja de observación).
+Semáforo con 3 fases reales del cruce Av. Toluca × Periférico:
+
+  Fase 1 (51s): Verde Av. Querétaro/Toluca arriba
+    - Zona H puede vaciarse hacia Av. Toluca sur y Lateral Sur este
+    - Rojo: Lateral Norte, Lateral Sur oeste
+
+  Amarillo 1→2 (3s)
+
+  Fase 2 (47s): Verde Lateral Norte + Lateral Sur oeste
+    - CRÍTICO: Lateral Sur oeste cruza perpendicularmente →
+      zona H queda bloqueada aunque Lateral Norte tenga verde
+    - Rojo: Av. Querétaro/Toluca
+
+  Amarillo 2→1 (3s)
+
+El agente de RL ajusta las duraciones de fase_1 y fase_2.
 """
 
 from __future__ import annotations
@@ -13,48 +26,41 @@ from typing import List
 
 import numpy as np
 
-TIEMPO_AMARILLO = 4   # segundos — fijo, no lo controla el agente
+TIEMPO_AMARILLO = 3   # segundos — fijo, dato real de campo
 
 
 @dataclass(frozen=True)
 class Fase:
-    """
-    Una fase del semáforo. Inmutable.
-    """
+    """Una fase del semáforo. Inmutable."""
     nombre: str
-    carriles_verde: List[str]   # ids de carriles con luz verde
-    duracion: int               # segundos
+    carriles_verde: List[str]
+    duracion: int
 
 
 class Semaforo:
     """
-    Controla el ciclo de fases del semáforo.
+    Controla el ciclo de 4 fases del semáforo real del cruce.
 
-    Fases base:
-      0 → verde Av. Toluca
-      1 → amarillo
-      2 → verde Periférico
-      3 → amarillo
+    Fases:
+      0 → fase_1:    verde Av. Querétaro/Toluca (ajustable por RL)
+      1 → amarillo_1: transición (fijo 3s)
+      2 → fase_2:    verde Lateral Norte + Lateral Sur oeste (ajustable por RL)
+      3 → amarillo_2: transición (fijo 3s)
 
-    El agente de RL llama a ajustar_duracion() para modificar
-    los tiempos de verde. El amarillo es siempre fijo.
-
-    Uso:
-        sem = Semaforo.desde_calibracion()
-        sem.tick()                          # avanza 1 segundo
-        sem.carril_tiene_verde("tol_arr_1") # True/False
-        sem.get_estado()                    # dict para el agente
+    Duraciones iniciales calibradas con datos de campo:
+      fase_1 = 51s, fase_2 = 47s, ciclo total = 104s + 6s amarillo = 110s
     """
 
-    DURACION_MIN = 15    # segundos mínimos de verde
-    DURACION_MAX = 120   # segundos máximos de verde
+    DURACION_MIN = 15
+    DURACION_MAX = 120
 
-    def __init__(self, duracion_toluca: int = 45, duracion_periferico: int = 55,
-                 carriles_toluca: List[str] = None, carriles_periferico: List[str] = None):
-        self.duracion_toluca = duracion_toluca
-        self.duracion_periferico = duracion_periferico
-        self._carriles_toluca = carriles_toluca or []
-        self._carriles_periferico = carriles_periferico or []
+    def __init__(self, duracion_fase_1: int = 51, duracion_fase_2: int = 47,
+                 carriles_fase_1: List[str] = None,
+                 carriles_fase_2: List[str] = None):
+        self.duracion_fase_1 = duracion_fase_1
+        self.duracion_fase_2 = duracion_fase_2
+        self._carriles_fase_1 = carriles_fase_1 or []
+        self._carriles_fase_2 = carriles_fase_2 or []
         self._construir_fases()
         self.reset()
 
@@ -63,50 +69,54 @@ class Semaforo:
     @classmethod
     def desde_calibracion(cls, flujos: dict, geometria) -> "Semaforo":
         """
-        Construye el semáforo con los tiempos observados en campo
-        y los ids de carriles reales de la geometría.
-
-        Args:
-            flujos:    dict cargado de flujos_calibrados.json
-            geometria: instancia de GeometriaCruce
+        Construye el semáforo desde flujos_calibrados.json con carriles reales.
         """
-        # TODO: implementar después de la visita de campo
-        # 1. Leer tiempos de flujos["tiempos_semaforo_observados"]
-        # 2. Extraer ids de carriles por vialidad de geometria
-        # 3. Retornar instancia
-        raise NotImplementedError
+        tiempos = flujos["tiempos_semaforo_observados"]
+        t1 = tiempos["verde_queretaro_toluca_s"]
+        t2 = tiempos["verde_lateral_norte_s"]
+
+        carriles_f1, carriles_f2 = [], []
+        for via in ["queretaro_toluca", "toluca_norte"]:
+            for c in geometria.carriles_de(via):
+                carriles_f1.append(c.id)
+        for via in ["lateral_norte", "lateral_sur_oeste"]:
+            for c in geometria.carriles_de(via):
+                carriles_f2.append(c.id)
+
+        return cls(
+            duracion_fase_1=t1,
+            duracion_fase_2=t2,
+            carriles_fase_1=carriles_f1,
+            carriles_fase_2=carriles_f2,
+        )
 
     @classmethod
     def dummy(cls) -> "Semaforo":
-        """Semáforo con valores placeholder para desarrollo y tests."""
+        """Semáforo con las fases reales observadas en campo (mediodía 19/05/2026)."""
         return cls(
-            duracion_toluca=45,
-            duracion_periferico=55,
-            carriles_toluca=["tol_arr_1", "tol_arr_2", "tol_aba_1", "tol_aba_2"],
-            carriles_periferico=["per_nor_1", "per_sur_1"],
+            duracion_fase_1=51,
+            duracion_fase_2=47,
+            carriles_fase_1=["que_tol_1", "que_tol_2", "que_tol_3", "tol_nor_1"],
+            carriles_fase_2=["lat_nor_1", "lat_nor_2", "lat_nor_3", "lat_nor_4",
+                             "lat_sur_1", "lat_sur_2"],
         )
 
     def _construir_fases(self):
-        """Reconstruye la lista de fases con los tiempos actuales."""
         self._fases: List[Fase] = [
-            Fase("verde_toluca",     self._carriles_toluca,     self.duracion_toluca),
-            Fase("amarillo_1",       [],                        TIEMPO_AMARILLO),
-            Fase("verde_periferico", self._carriles_periferico, self.duracion_periferico),
-            Fase("amarillo_2",       [],                        TIEMPO_AMARILLO),
+            Fase("fase_1",    self._carriles_fase_1, self.duracion_fase_1),
+            Fase("amarillo_1", [],                   TIEMPO_AMARILLO),
+            Fase("fase_2",    self._carriles_fase_2, self.duracion_fase_2),
+            Fase("amarillo_2", [],                   TIEMPO_AMARILLO),
         ]
 
     # ── Control ──────────────────────────────────────────────
 
     def reset(self):
-        """Reinicia al inicio del ciclo."""
         self._fase_idx = 0
         self._t_en_fase = 0
 
     def tick(self) -> bool:
-        """
-        Avanza el semáforo 1 segundo.
-        Retorna True si cambió de fase en este tick.
-        """
+        """Avanza 1 segundo. Retorna True si cambió de fase."""
         self._t_en_fase += 1
         if self._t_en_fase >= self.fase_actual.duracion:
             self._t_en_fase = 0
@@ -114,17 +124,18 @@ class Semaforo:
             return True
         return False
 
-    def ajustar_duracion(self, delta_toluca: int = 0, delta_periferico: int = 0):
+    def ajustar_duracion(self, delta_fase_1: int = 0, delta_fase_2: int = 0):
         """
         Modifica los tiempos de verde. Llamado por el agente de RL.
-        Los tiempos se clampean al rango [DURACION_MIN, DURACION_MAX].
-        No interrumpe el ciclo en curso.
+        Clampea al rango [DURACION_MIN, DURACION_MAX].
         """
-        self.duracion_toluca = int(
-            np.clip(self.duracion_toluca + delta_toluca, self.DURACION_MIN, self.DURACION_MAX)
+        self.duracion_fase_1 = int(
+            np.clip(self.duracion_fase_1 + delta_fase_1,
+                    self.DURACION_MIN, self.DURACION_MAX)
         )
-        self.duracion_periferico = int(
-            np.clip(self.duracion_periferico + delta_periferico, self.DURACION_MIN, self.DURACION_MAX)
+        self.duracion_fase_2 = int(
+            np.clip(self.duracion_fase_2 + delta_fase_2,
+                    self.DURACION_MIN, self.DURACION_MAX)
         )
         self._construir_fases()
 
@@ -137,25 +148,37 @@ class Semaforo:
     def carril_tiene_verde(self, carril_id: str) -> bool:
         return carril_id in self.fase_actual.carriles_verde
 
+    def es_fase_1(self) -> bool:
+        return self.fase_actual.nombre == "fase_1"
+
+    def es_fase_2(self) -> bool:
+        return self.fase_actual.nombre == "fase_2"
+
+    def es_amarillo(self) -> bool:
+        return self.fase_actual.nombre.startswith("amarillo")
+
+    def zona_H_bloqueada(self) -> bool:
+        """
+        True durante fase_2: Lateral Sur oeste cruza perpendicularmente,
+        impidiendo que los vehículos en zona H puedan salir.
+        """
+        return self.es_fase_2()
+
     def tiempo_restante(self) -> int:
-        """Segundos que faltan para que cambie la fase actual."""
         return self.fase_actual.duracion - self._t_en_fase
 
     @property
     def ciclo_total(self) -> int:
         return sum(f.duracion for f in self._fases)
 
-    def es_amarillo(self) -> bool:
-        return self.fase_actual.nombre.startswith("amarillo")
-
     def get_estado(self) -> dict:
-        """Dict de estado para el agente de RL y el monitor."""
         return {
-            "fase":               self.fase_actual.nombre,
-            "fase_idx":           self._fase_idx,
-            "tiempo_restante":    self.tiempo_restante(),
-            "es_amarillo":        self.es_amarillo(),
-            "duracion_toluca":    self.duracion_toluca,
-            "duracion_periferico": self.duracion_periferico,
-            "ciclo_total":        self.ciclo_total,
+            "fase":            self.fase_actual.nombre,
+            "fase_idx":        self._fase_idx,
+            "tiempo_restante": self.tiempo_restante(),
+            "es_amarillo":     self.es_amarillo(),
+            "zona_H_bloqueada": self.zona_H_bloqueada(),
+            "duracion_fase_1": self.duracion_fase_1,
+            "duracion_fase_2": self.duracion_fase_2,
+            "ciclo_total":     self.ciclo_total,
         }

@@ -21,21 +21,39 @@ from sim.router import MarkovRouter
 from sim.traffic_light import Semaforo
 from sim.vehicle import Vehiculo, PerfilConductor, perfil_aleatorio
 
-# Flujos vehiculares por periodo del día (veh/hora)
-# Llenados con datos de campo desde flujos_calibrados.json
-FLUJOS_DEFAULT: Dict[str, List[float]] = {
-    "toluca_arriba":    [120, 1400, 800, 1200, 400],
-    "toluca_abajo":     [100, 1200, 750, 1300, 350],
-    "periferico_norte": [200, 1600, 900, 1400, 500],
-    "periferico_sur":   [180, 1500, 850, 1350, 450],
+# Vialidades con semáforo en el cruce
+# Flujos independientes sin semáforo (retorno zona H, vuelta continua)
+# no se modelan como vialidades de entrada.
+VIALIDADES = [
+    "queretaro_toluca",   # Av. Querétaro diagonal → Av. Toluca (3 carriles, fase 1)
+    "toluca_norte",       # Av. Toluca norte 1 carril (fase 1)
+    "lateral_norte",      # Lateral Norte ← oeste, 4 carriles (fase 2)
+    "lateral_sur_oeste",  # Lateral Sur oeste → este, 2 carriles rectos (fase 2)
+]
+
+# Fases del semáforo — qué vialidades tienen verde en cada fase
+FASE_VERDE: Dict[str, List[str]] = {
+    "fase_1": ["queretaro_toluca", "toluca_norte"],
+    "fase_2": ["lateral_norte", "lateral_sur_oeste"],
 }
 
-# Tasa de descarga (veh/segundo de verde) — calibrar con sección E
+# Flujos vehiculares por periodo del día (veh/hora)
+# Periodo 2 (mediodía) calibrado con datos de campo de Julián (19/05/2026)
+# Periodos 0,1,3,4 estimados con factores de escala típicos CDMX
+FLUJOS_DEFAULT: Dict[str, List[float]] = {
+    "queretaro_toluca":  [390,  2140, 2165, 1930, 755],
+    "toluca_norte":      [130,   715,  722,  643, 252],
+    "lateral_norte":     [480,  2390, 2400, 2135, 840],
+    "lateral_sur_oeste": [400,  2000, 2011, 1790, 700],
+}
+
+# Tasa de descarga (veh/segundo de verde)
+# Datos reales de campo sección E — mediodía 19/05/2026
 TASA_DESCARGA_DEFAULT: Dict[str, float] = {
-    "toluca_arriba":    0.5,
-    "toluca_abajo":     0.5,
-    "periferico_norte": 0.6,
-    "periferico_sur":   0.6,
+    "queretaro_toluca":  1.313,  # proporcional desde 105 veh/60s × 0.75 (3 de 4 carriles)
+    "toluca_norte":      0.292,  # proporcional desde 105 veh/60s × 0.25 / 1 carril
+    "lateral_norte":     1.567,  # campo directo: 94 veh/60s
+    "lateral_sur_oeste": 1.317,  # campo directo: 79 veh/60s (2 carriles)
 }
 
 # Vector de estado para el agente de RL
