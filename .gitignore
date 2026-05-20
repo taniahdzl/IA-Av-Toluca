@@ -35,3 +35,4 @@ htmlcov/
 # IDEs
 .vscode/
 .idea/
+cache/
