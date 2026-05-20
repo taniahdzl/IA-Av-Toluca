@@ -25,7 +25,7 @@ model = PPO(
     policy="MlpPolicy", env=env,
     policy_kwargs={"net_arch": [64, 64]},
     learning_rate=3e-4, n_steps=120, batch_size=30,
-    n_epochs=10, gamma=0.99, gae_lambda=0.95, clip_range=0.2,
+    n_epochs=10, gamma=0.995,   # valorar más recompensas futuras gae_lambda=0.95, clip_range=0.2,
     verbose=1,
 )
 
@@ -35,9 +35,9 @@ checkpoint_cb = CheckpointCallback(
 )
 
 print("=== Entrenando 500,000 pasos ===")
-print("  reward_ponderada | ep=30min | intervalo=30s")
+print("  reward_ponderada | ep=30min | intervalo=30s | gamma=0.995")
 print()
-model.learn(total_timesteps=500_000, callback=checkpoint_cb, )
+model.learn(total_timesteps=500_000, callback=checkpoint_cb)
 model.save("rl/models/ppo_semaforo_v1")
 print("\n✓ Modelo guardado: rl/models/ppo_semaforo_v1.zip")
 

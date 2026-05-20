@@ -72,7 +72,8 @@ class CruceEnv(gym.Env):
         self._ultimo_estado_render: Optional[dict] = None
 
         # ── Espacios ─────────────────────────────────────────
-        # Observación: 7 valores continuos en [0, 1]
+        # Observación: 9 valores continuos en [0, 1]
+        # [cola×4, t_restante, fase, periodo, espera_queretaro, ratio_fases]
         self.observation_space = spaces.Box(
             low=0.0, high=1.0,
             shape=(ESTADO_DIM,),
