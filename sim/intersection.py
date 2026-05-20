@@ -95,16 +95,58 @@ class SimuladorCruce:
     @classmethod
     def desde_calibracion(cls, seed: int = 42) -> "SimuladorCruce":
         """
-        Construye el simulador completo desde los JSONs calibrados.
-        Usar una vez que se tengan los datos de campo.
+        Construye el simulador completo desde los JSONs calibrados con datos de campo.
+        Llama a este método en vez de dummy() cuando los JSONs estén completos.
         """
-        # TODO: implementar
-        # 1. Cargar GeometriaCruce.desde_json()
-        # 2. Cargar flujos_calibrados.json
-        # 3. Construir Semaforo.desde_calibracion()
-        # 4. Construir MarkovRouter.desde_json()
-        # 5. Retornar instancia con todos los parámetros reales
-        raise NotImplementedError
+        import json
+        from pathlib import Path
+
+        # 1. Geometría real
+        geometria = GeometriaCruce.desde_json()
+
+        # 2. Flujos y tasas de descarga desde JSON
+        flujos_data = json.loads(
+            Path("data/processed/flujos_calibrados.json").read_text()
+        )
+        # Flujos: convertir de {"0": 390, "1": 2140, ...} a lista [390, 2140, ...]
+        flujos: Dict[str, List[float]] = {}
+        for via, datos in flujos_data["flujos_veh_hora"].items():
+            if via.startswith("_"):
+                continue
+            if isinstance(datos, dict):
+                # Extraer solo los periodos numéricos (0-4), ignorar _notas
+                flujos[via] = [float(datos[str(p)]) for p in range(5)
+                               if str(p) in datos]
+            elif isinstance(datos, list):
+                flujos[via] = [float(v) for v in datos]
+
+        tasas: Dict[str, float] = {}
+        for via, valor in flujos_data["tasa_descarga_veh_por_segundo"].items():
+            if not via.startswith("_") and isinstance(valor, (int, float)):
+                tasas[via] = float(valor)
+
+        # 3. Semáforo con tiempos reales
+        semaforo = Semaforo.desde_calibracion(flujos_data, geometria)
+
+        # 4. Router con matriz de Markov calibrada
+        router = MarkovRouter.desde_json()
+
+        # 5. Actualizar distribución de perfiles de conductor
+        from sim.vehicle import DISTRIBUCION_PERFILES, PerfilConductor
+        perfiles = flujos_data.get("perfiles_conductor", {})
+        if perfiles and not any(v is None for v in perfiles.values()):
+            DISTRIBUCION_PERFILES[PerfilConductor.AGRESIVO]  = perfiles["agresivo"]
+            DISTRIBUCION_PERFILES[PerfilConductor.NORMAL]    = perfiles["normal"]
+            DISTRIBUCION_PERFILES[PerfilConductor.CAUTELOSO] = perfiles["cauteloso"]
+
+        return cls(
+            geometria=geometria,
+            semaforo=semaforo,
+            router=router,
+            flujos=flujos,
+            tasa_descarga=tasas,
+            seed=seed,
+        )
 
     @classmethod
     def dummy(cls, seed: int = 42) -> "SimuladorCruce":

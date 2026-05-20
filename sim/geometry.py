@@ -74,18 +74,46 @@ class GeometriaCruce:
     @classmethod
     def desde_json(cls, path: Path = GEOMETRIA_PATH) -> "GeometriaCruce":
         """
-        Construye la geometría desde el JSON de datos de campo.
-        Lanza un error descriptivo si el JSON aún tiene valores null
-        (pendiente de calibración).
+        Construye la geometría desde el JSON calibrado con datos de campo.
+        Usa valores reales donde estén disponibles; null usa el dummy como fallback.
         """
-        # TODO: implementar después de la visita de campo
-        # 1. Leer el JSON
-        # 2. Validar que no haya valores null
-        # 3. Construir objetos Carril por cada entrada
-        # 4. Retornar instancia de GeometriaCruce
-        raise NotImplementedError(
-            "Completa data/processed/geometria_carriles.json con los datos de campo "
-            "antes de llamar a GeometriaCruce.desde_json()"
+        import json
+        data = json.loads(path.read_text())
+
+        longitud_veh = data.get("longitud_vehiculo_promedio_m") or 4.1
+        separacion   = data.get("separacion_detencion_m") or 1.0
+
+        # Fallback: valores dummy para campos null
+        dummy = cls.dummy()
+        dummy_por_vialidad = {
+            v: {c.numero: c for c in cs}
+            for v, cs in dummy.carriles.items()
+        }
+
+        carriles: Dict[str, List[Carril]] = {}
+        for vialidad, info_via in data["vialidades"].items():
+            lista = []
+            for c_data in info_via["carriles"]:
+                num = c_data["numero"]
+                longitud = c_data.get("longitud_almacenamiento_m")
+                if longitud is None:
+                    fb = dummy_por_vialidad.get(vialidad, {}).get(num)
+                    longitud = fb.longitud_almacenamiento_m if fb else 60.0
+                ancho = c_data.get("ancho_estimado_m") or 3.5
+                lista.append(Carril(
+                    id=c_data["id"],
+                    vialidad=vialidad,
+                    numero=num,
+                    movimientos_permitidos=c_data["movimientos_permitidos"],
+                    longitud_almacenamiento_m=float(longitud),
+                    ancho_estimado_m=float(ancho),
+                ))
+            carriles[vialidad] = lista
+
+        return cls(
+            carriles=carriles,
+            longitud_vehiculo_m=longitud_veh,
+            separacion_detencion_m=separacion,
         )
 
     @classmethod

@@ -52,17 +52,31 @@ class MarkovRouter:
     def desde_json(cls, path: Path = MARKOV_PATH) -> "MarkovRouter":
         """
         Carga la matriz desde el JSON calibrado con datos de campo.
-        Lanza error descriptivo si aún hay valores null.
+        Si hay periodos con null, usa los valores del dummy como fallback.
         """
-        # TODO: implementar después de la visita de campo
-        # 1. Leer JSON
-        # 2. Verificar que no haya nulls
-        # 3. Convertir keys de periodo a int
-        # 4. Retornar instancia
-        raise NotImplementedError(
-            "Completa data/processed/matriz_markov.json con los conteos "
-            "de giros (sección C.2 de la hoja de observación)"
-        )
+        import json
+        data = json.loads(path.read_text())
+
+        # Vialidades válidas (excluir claves de metadata que empiezan con _)
+        vialidades = [k for k in data if not k.startswith("_")]
+
+        dummy = cls.dummy()
+        matriz: Dict[str, Dict[str, List[float]]] = {}
+
+        for via in vialidades:
+            matriz[via] = {}
+            for p in range(5):
+                probs = data[via].get(str(p))
+                # Si hay nulls o no existe, usar dummy
+                if not probs or any(v is None for v in probs):
+                    probs = dummy.matriz[via][str(p)]
+                # Normalizar para que sumen exactamente 1.0
+                total = sum(probs)
+                probs = [round(v / total, 6) for v in probs]
+                probs[-1] = round(1.0 - probs[0] - probs[1], 6)
+                matriz[via][str(p)] = probs
+
+        return cls(matriz)
 
     @classmethod
     def dummy(cls) -> "MarkovRouter":
