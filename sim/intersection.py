@@ -25,10 +25,9 @@ from sim.vehicle import Vehiculo, PerfilConductor, perfil_aleatorio
 # Flujos independientes sin semáforo (retorno zona H, vuelta continua)
 # no se modelan como vialidades de entrada.
 VIALIDADES = [
-    "queretaro_toluca",   # Av. Querétaro diagonal → Av. Toluca (3 carriles, fase 1)
-    "toluca_norte",       # Av. Toluca norte 1 carril (fase 1)
+    "queretaro_toluca",   # Av. Querétaro + Toluca norte fusionados (4 carriles, fase 1)
     "lateral_norte",      # Lateral Norte ← oeste, 4 carriles (fase 2)
-    "lateral_sur_oeste",  # Lateral Sur oeste → este, 2 carriles rectos (fase 2)
+    "lateral_sur_oeste",  # Lateral Sur oeste → este, 2 carriles rectos (fase 3)
 ]
 
 # Fases del semáforo — qué vialidades tienen verde en cada fase
@@ -40,24 +39,24 @@ FASE_VERDE: Dict[str, List[str]] = {
 # Flujos vehiculares por periodo del día (veh/hora)
 # Periodo 2 (mediodía) calibrado con datos de campo de Julián (19/05/2026)
 # Periodos 0,1,3,4 estimados con factores de escala típicos CDMX
+# Flujos fusionados: queretaro_toluca incluye Av. Toluca norte
+# queretaro_toluca = [390+130, 2140+715, 2165+722, 1930+643, 755+252]
 FLUJOS_DEFAULT: Dict[str, List[float]] = {
-    "queretaro_toluca":  [390,  2140, 2165, 1930, 755],
-    "toluca_norte":      [130,   715,  722,  643, 252],
-    "lateral_norte":     [480,  2390, 2400, 2135, 840],
-    "lateral_sur_oeste": [400,  2000, 2011, 1790, 700],
+    "queretaro_toluca":  [520,  2855, 2887, 2573, 1007],
+    "lateral_norte":     [480,  2390, 2400, 2135,  840],
+    "lateral_sur_oeste": [400,  2000, 2011, 1790,  700],
 }
 
 # Tasa de descarga (veh/segundo de verde)
 # Datos reales de campo sección E — mediodía 19/05/2026
 TASA_DESCARGA_DEFAULT: Dict[str, float] = {
-    "queretaro_toluca":  1.313,  # proporcional desde 105 veh/60s × 0.75 (3 de 4 carriles)
-    "toluca_norte":      0.292,  # proporcional desde 105 veh/60s × 0.25 / 1 carril
+    "queretaro_toluca":  1.605,  # campo: 105 veh/60s total Toluca ↑ (3c Querétaro + 1c Toluca norte)
     "lateral_norte":     1.567,  # campo directo: 94 veh/60s
     "lateral_sur_oeste": 1.317,  # campo directo: 79 veh/60s (2 carriles)
 }
 
 # Vector de estado para el agente de RL
-# [cola×4, t_restante, fase_idx, periodo, espera_queretaro, ratio_f1, ratio_f3]
+# [cola×3, t_restante, fase_idx, periodo, espera_que, ratio_f1, ratio_f2, ratio_f3]
 ESTADO_DIM = 10
 
 
@@ -301,7 +300,7 @@ class SimuladorCruce:
         # [6] Periodo del día normalizado
         periodo_norm = self._get_periodo() / 4.0
 
-        # [7] Espera promedio de queretaro_toluca (cuello de botella principal)
+        # [7] Espera promedio de queretaro_toluca (4 carriles fusionados, cuello de botella)
         esperas_que = [
             self.t - v.t_llegada
             for c in self.geometria.carriles_de("queretaro_toluca")
@@ -309,17 +308,19 @@ class SimuladorCruce:
         ]
         espera_norm = min(np.mean(esperas_que) / 300.0, 1.0) if esperas_que else 0.0
 
-        # [8] ratio fase_1 / ciclo total
-        ciclo_verde = (self.semaforo.duracion_fase_1 + self.semaforo.duracion_fase_2
-                       + self.semaforo.duracion_fase_3)
-        ratio_f1 = self.semaforo.duracion_fase_1 / max(ciclo_verde, 1)
-
-        # [9] ratio fase_3 / ciclo total — tiempo que ocupa Lat Sur oeste rectos
-        ratio_f3 = self.semaforo.duracion_fase_3 / max(ciclo_verde, 1)
+        # [7-9] Ratios de tiempo para las 3 fases
+        ciclo_verde = (self.semaforo.duracion_fase_1 +
+                       self.semaforo.duracion_fase_2 +
+                       self.semaforo.duracion_fase_3)
+        cv = max(ciclo_verde, 1)
+        ratio_f1 = self.semaforo.duracion_fase_1 / cv
+        ratio_f2 = self.semaforo.duracion_fase_2 / cv
+        ratio_f3 = self.semaforo.duracion_fase_3 / cv
 
         return np.array(
             colas_norm + [t_restante_norm, fase_norm, periodo_norm,
-                          float(espera_norm), float(ratio_f1), float(ratio_f3)],
+                          float(espera_norm), float(ratio_f1),
+                          float(ratio_f2), float(ratio_f3)],
             dtype=np.float32
         )
 
@@ -338,20 +339,16 @@ class SimuladorCruce:
         if hora < 20:  return 3
         return 4
 
-    def _aplicar_accion(self, accion: Optional[int]):
+    def _aplicar_accion(self, accion):
         """
-        Traduce la acción discreta del agente en ajuste del semáforo.
-        0=nada, 1/2=±fase_1, 3/4=±fase_2, 5/6=±fase_3
+        Aplica la acción continua del agente SAC.
+        accion: array de shape (3,) con [f1, f2, f3] en segundos reales.
+        None = no hacer nada (modo baseline).
         """
-        ajustes = {
-            1: (10,  0,  0), 2: (-10, 0,  0),
-            3: (0,  10,  0), 4: (0, -10,  0),
-            5: (0,   0, 10), 6: (0,   0,-10),
-        }
-        if not accion or accion not in ajustes:
+        if accion is None:
             return
-        d1, d2, d3 = ajustes[accion]
-        self.semaforo.ajustar_duracion(d1, d2, d3)
+        a = np.asarray(accion).flatten()
+        self.semaforo.set_duraciones(float(a[0]), float(a[1]), float(a[2]))
 
     def _generar_llegadas(self, periodo: int) -> List[Vehiculo]:
         """
