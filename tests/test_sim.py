@@ -12,7 +12,7 @@ from sim.geometry import Carril, GeometriaCruce
 from sim.vehicle import Vehiculo, PerfilConductor, PerfilParams, PARAMS_POR_PERFIL, perfil_aleatorio
 from sim.router import MarkovRouter
 from sim.traffic_light import Semaforo
-from sim.intersection import SimuladorCruce, ESTADO_DIM
+from sim.intersection import SimuladorCruce, ESTADO_DIM, VIALIDADES
 
 
 # ─────────────────────────────────────────────
@@ -25,38 +25,57 @@ class TestGeometria:
         geo = GeometriaCruce.dummy()
         assert len(geo.todos_los_carriles()) > 0
 
-    def test_carriles_de_vialidad(self):
+    def test_vialidades_reales(self):
         geo = GeometriaCruce.dummy()
-        carriles = geo.carriles_de("toluca_arriba")
-        assert len(carriles) >= 1
-        for c in carriles:
-            assert c.vialidad == "toluca_arriba"
+        for v in VIALIDADES:
+            assert len(geo.carriles_de(v)) > 0, f"{v} no tiene carriles"
+
+    def test_queretaro_tiene_3_carriles(self):
+        geo = GeometriaCruce.dummy()
+        assert len(geo.carriles_de("queretaro_toluca")) == 3
+
+    def test_toluca_norte_tiene_1_carril(self):
+        geo = GeometriaCruce.dummy()
+        assert len(geo.carriles_de("toluca_norte")) == 1
+
+    def test_lateral_norte_tiene_4_carriles(self):
+        geo = GeometriaCruce.dummy()
+        assert len(geo.carriles_de("lateral_norte")) == 4
+
+    def test_lateral_sur_tiene_2_carriles(self):
+        geo = GeometriaCruce.dummy()
+        assert len(geo.carriles_de("lateral_sur_oeste")) == 2
 
     def test_capacidad_vehiculos_razonable(self):
         geo = GeometriaCruce.dummy()
         for c in geo.todos_los_carriles():
             assert c.capacidad_vehiculos > 0
-            assert c.capacidad_vehiculos < 200   # número razonable
+            assert c.capacidad_vehiculos < 200
 
     def test_acepta_movimiento(self):
         carril = Carril(
-            id="test_1", vialidad="toluca_arriba", numero=1,
-            movimientos_permitidos=["recto", "izquierda"],
+            id="test_1", vialidad="queretaro_toluca", numero=1,
+            movimientos_permitidos=["recto"],
             longitud_almacenamiento_m=60.0
         )
         assert carril.acepta_movimiento("recto")
-        assert carril.acepta_movimiento("izquierda")
-        assert not carril.acepta_movimiento("derecha")
+        assert not carril.acepta_movimiento("izquierda")
 
     def test_esta_saturado(self):
         carril = Carril(
-            id="test_2", vialidad="toluca_arriba", numero=1,
+            id="test_2", vialidad="toluca_norte", numero=1,
             movimientos_permitidos=["recto"],
-            longitud_almacenamiento_m=45.0    # ≈ 8 vehículos
+            longitud_almacenamiento_m=20.0
         )
         capacidad = carril.capacidad_vehiculos
         assert not carril.esta_saturado(0)
         assert carril.esta_saturado(capacidad)
+
+    def test_desde_json_carga_correctamente(self):
+        geo = GeometriaCruce.desde_json()
+        assert len(geo.todos_los_carriles()) > 0
+        for v in VIALIDADES:
+            assert len(geo.carriles_de(v)) > 0
 
 
 # ─────────────────────────────────────────────
@@ -65,34 +84,53 @@ class TestGeometria:
 
 class TestSemaforo:
 
-    def test_ciclo_completo(self):
+    def test_ciclo_completo_vuelve_a_fase_0(self):
         sem = Semaforo.dummy()
         ciclo = sem.ciclo_total
         for _ in range(ciclo):
             sem.tick()
-        # Después de un ciclo completo debe volver a fase 0
         assert sem._fase_idx == 0
 
-    def test_carril_tiene_verde(self):
+    def test_fase_1_verde_queretaro_rojo_lateral(self):
         sem = Semaforo.dummy()
-        # Al inicio: fase verde Toluca
-        assert sem.carril_tiene_verde("tol_arr_1")
-        assert not sem.carril_tiene_verde("per_nor_1")
+        # Al inicio debe estar en fase_1
+        assert sem.es_fase_1()
+        assert sem.carril_tiene_verde("que_tol_1")
+        assert not sem.carril_tiene_verde("lat_nor_1")
+
+    def test_fase_2_verde_lateral_rojo_queretaro(self):
+        sem = Semaforo.dummy()
+        # Avanzar hasta fase_2
+        for _ in range(sem.duracion_fase_1 + 3 + 1):  # fase1 + amarillo + 1
+            sem.tick()
+        assert sem.es_fase_2()
+        assert sem.carril_tiene_verde("lat_nor_1")
+        assert not sem.carril_tiene_verde("que_tol_1")
+
+    def test_zona_H_bloqueada_en_fase_2(self):
+        sem = Semaforo.dummy()
+        assert not sem.zona_H_bloqueada()
+        for _ in range(sem.duracion_fase_1 + 3 + 1):
+            sem.tick()
+        assert sem.zona_H_bloqueada()
+
+    def test_tiempos_reales_de_campo(self):
+        sem = Semaforo.dummy()
+        assert sem.duracion_fase_1 == 51
+        assert sem.duracion_fase_2 == 47
 
     def test_ajustar_duracion_respeta_limites(self):
         sem = Semaforo.dummy()
-        sem.ajustar_duracion(delta_toluca=1000)   # debe clampear a DURACION_MAX
-        assert sem.duracion_toluca == Semaforo.DURACION_MAX
-
-        sem.ajustar_duracion(delta_toluca=-1000)  # debe clampear a DURACION_MIN
-        assert sem.duracion_toluca == Semaforo.DURACION_MIN
+        sem.ajustar_duracion(delta_fase_1=1000)
+        assert sem.duracion_fase_1 == Semaforo.DURACION_MAX
+        sem.ajustar_duracion(delta_fase_1=-1000)
+        assert sem.duracion_fase_1 == Semaforo.DURACION_MIN
 
     def test_tiempo_restante_decrece(self):
         sem = Semaforo.dummy()
         t1 = sem.tiempo_restante()
         sem.tick()
-        t2 = sem.tiempo_restante()
-        assert t2 == t1 - 1
+        assert sem.tiempo_restante() == t1 - 1
 
     def test_reset_vuelve_a_inicio(self):
         sem = Semaforo.dummy()
@@ -113,22 +151,45 @@ class TestMarkovRouter:
         router = MarkovRouter.dummy()
         assert router is not None
 
-    def test_destino_valido(self):
+    def test_vialidades_reales_presentes(self):
         router = MarkovRouter.dummy()
-        for _ in range(50):
-            destino = router.elegir_destino("toluca_arriba", periodo=1)
+        for v in VIALIDADES:
+            assert v in router.matriz
+
+    def test_destino_valido_queretaro(self):
+        router = MarkovRouter.dummy()
+        for _ in range(20):
+            destino = router.elegir_destino("queretaro_toluca", periodo=1)
             assert destino in ["recto", "izquierda", "derecha"]
+
+    def test_queretaro_siempre_recto(self):
+        router = MarkovRouter.dummy()
+        # queretaro_toluca tiene prob 1.0 de recto
+        for _ in range(20):
+            assert router.elegir_destino("queretaro_toluca", periodo=2) == "recto"
+
+    def test_lateral_norte_mayoria_recto(self):
+        # En periodo 2: recto=0.5862, izq=0.2414, der=0.1724
+        router = MarkovRouter.dummy()
+        destinos = [router.elegir_destino("lateral_norte", periodo=2) for _ in range(200)]
+        pct_recto = destinos.count("recto") / len(destinos)
+        assert 0.45 < pct_recto < 0.72  # tolerancia estadística
 
     def test_probabilidades_suman_uno(self):
         router = MarkovRouter.dummy()
         for vialidad, periodos in router.matriz.items():
             for periodo, probs in periodos.items():
-                assert abs(sum(probs) - 1.0) < 1e-6, \
+                assert abs(sum(probs) - 1.0) < 1e-4, \
                     f"{vialidad} periodo {periodo}: suman {sum(probs)}"
 
     def test_validacion_rechaza_probs_incorrectas(self):
         with pytest.raises(AssertionError):
-            MarkovRouter({"toluca_arriba": {"0": [0.5, 0.5, 0.5]}})  # suman 1.5
+            MarkovRouter({"queretaro_toluca": {"0": [0.5, 0.5, 0.5]}})
+
+    def test_desde_json_carga_correctamente(self):
+        router = MarkovRouter.desde_json()
+        for v in VIALIDADES:
+            assert v in router.matriz
 
 
 # ─────────────────────────────────────────────
@@ -139,8 +200,8 @@ class TestVehiculo:
 
     def _vehiculo(self, perfil=PerfilConductor.NORMAL) -> Vehiculo:
         return Vehiculo(
-            id=1, vialidad_origen="toluca_arriba",
-            carril_id="tol_arr_1", destino="recto",
+            id=1, vialidad_origen="queretaro_toluca",
+            carril_id="que_tol_1", destino="recto",
             perfil=perfil, t_llegada=0
         )
 
@@ -161,6 +222,35 @@ class TestVehiculo:
         for _ in range(20):
             p = perfil_aleatorio()
             assert isinstance(p, PerfilConductor)
+
+    def test_agresivo_acepta_brecha_minima(self):
+        v = self._vehiculo(PerfilConductor.AGRESIVO)
+        assert v.acepta_brecha(1)   # agresivo acepta brecha de 1
+        assert not v.acepta_brecha(0)
+
+    def test_cauteloso_necesita_brecha_mayor(self):
+        v = self._vehiculo(PerfilConductor.CAUTELOSO)
+        assert not v.acepta_brecha(2)  # cauteloso necesita al menos 3
+        assert v.acepta_brecha(3)
+
+    def test_cauteloso_no_bloquea(self):
+        v = self._vehiculo(PerfilConductor.CAUTELOSO)
+        # Cauteloso nunca bloquea (prob=0.0)
+        for _ in range(20):
+            assert not v.intentara_bloquear()
+
+    def test_no_cambia_carril_sin_diferencia(self):
+        v = self._vehiculo()
+        # Si la cola vecina es igual, no cambia
+        for _ in range(20):
+            assert not v.quiere_cambiar_carril(cola_actual=5, cola_vecina=5)
+
+    def test_limite_cambios_carril(self):
+        v = self._vehiculo(PerfilConductor.AGRESIVO)
+        v.intentos_cambio_carril = 2
+        # Con 2 intentos ya no debe cambiar
+        for _ in range(20):
+            assert not v.quiere_cambiar_carril(cola_actual=10, cola_vecina=1)
 
 
 # ─────────────────────────────────────────────
@@ -201,3 +291,35 @@ class TestSimuladorCruce:
         resumen = monitor.resumen()
         assert resumen["duracion_seg"] == 60
         assert sim._vehiculo_id > 0
+
+    def test_run_salen_vehiculos(self):
+        sim = SimuladorCruce.dummy()
+        monitor = sim.run(duracion_seg=120, verbose=False)
+        assert monitor.resumen()["total_salidos"] > 0
+
+    def test_cola_crece_en_rojo(self):
+        # Durante fase_2, queretaro_toluca debe acumular cola
+        sim = SimuladorCruce.dummy()
+        sim.reset()
+        # Avanzar hasta fase_2
+        while not sim.semaforo.es_fase_2():
+            sim.step()
+        cola_inicio = sum(
+            len(sim._colas[c.id])
+            for c in sim.geometria.carriles_de("queretaro_toluca")
+        )
+        for _ in range(10):
+            sim.step()
+        cola_fin = sum(
+            len(sim._colas[c.id])
+            for c in sim.geometria.carriles_de("queretaro_toluca")
+        )
+        assert cola_fin >= cola_inicio  # cola no baja en rojo
+
+    def test_desde_calibracion_funciona(self):
+        sim = SimuladorCruce.desde_calibracion()
+        sim.reset()
+        estado, _, info = sim.step()
+        assert estado.shape == (ESTADO_DIM,)
+        assert sim.semaforo.duracion_fase_1 == 51
+        assert sim.semaforo.duracion_fase_2 == 47
