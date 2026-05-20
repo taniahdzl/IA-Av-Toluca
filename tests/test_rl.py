@@ -115,7 +115,6 @@ class TestRewardFunctions:
 # environment.py
 # ─────────────────────────────────────────────
 
-@pytest.mark.skip(reason="Requiere SimuladorCruce.get_estado() y step() implementados")
 class TestCruceEnv:
 
     def _env(self):

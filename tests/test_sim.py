@@ -181,7 +181,6 @@ class TestSimuladorCruce:
         for cola in sim._colas.values():
             assert len(cola) == 0
 
-    @pytest.mark.skip(reason="get_estado() pendiente de implementar")
     def test_estado_tiene_dimension_correcta(self):
         sim = SimuladorCruce.dummy()
         sim.reset()
@@ -190,14 +189,12 @@ class TestSimuladorCruce:
         assert np.all(estado >= 0.0)
         assert np.all(estado <= 1.0)
 
-    @pytest.mark.skip(reason="step() pendiente de implementar")
     def test_step_avanza_tiempo(self):
         sim = SimuladorCruce.dummy()
         sim.reset()
         sim.step()
         assert sim.t == 1
 
-    @pytest.mark.skip(reason="step() pendiente de implementar")
     def test_run_genera_vehiculos(self):
         sim = SimuladorCruce.dummy()
         monitor = sim.run(duracion_seg=60, verbose=False)
