@@ -6,286 +6,160 @@
 <title>Cruce Av. Toluca × Periférico — Demo RL</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: #0f1117; color: #e2e8f0; min-height: 100vh;
+         display: flex; flex-direction: column; }
+  header { padding: 10px 20px; background: #1a1d27;
+           border-bottom: 1px solid #2d3148;
+           display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 14px; font-weight: 600; }
+  header .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .hora { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums;
+          color: #60a5fa; }
+  main { flex: 1; display: grid; grid-template-columns: 1fr 300px; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #0f1117;
-    color: #e2e8f0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+  /* Canvas */
+  .canvas-wrap { padding: 16px; display: flex; flex-direction: column;
+                 align-items: center; gap: 8px; }
+  canvas#cruce { width: 100%; max-width: 520px; aspect-ratio: 1;
+                 background: #1a1d27; border-radius: 10px;
+                 border: 1px solid #2d3148; display: block; }
+  .sim-time { font-size: 11px; color: #64748b; }
 
-  header {
-    padding: 12px 24px;
-    background: #1a1d27;
-    border-bottom: 1px solid #2d3148;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  header h1 { font-size: 15px; font-weight: 600; color: #e2e8f0; }
-  header .subtitle { font-size: 12px; color: #64748b; margin-top: 2px; }
-
-  .badge {
-    font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500;
-  }
-  .badge-rl  { background: #1e3a5f; color: #60a5fa; }
-  .badge-fijo { background: #2d1f3d; color: #a78bfa; }
-
-  /* ── Layout principal ── */
-  main {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 0;
-  }
-
-  /* ── Canvas del cruce ── */
-  .canvas-wrap {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  canvas#cruce {
-    width: 100%;
-    max-width: 560px;
-    aspect-ratio: 1;
-    background: #1a1d27;
-    border-radius: 12px;
-    border: 1px solid #2d3148;
-    display: block;
-    margin: 0 auto;
-  }
-
-  /* ── Panel derecho ── */
-  .panel {
-    background: #1a1d27;
-    border-left: 1px solid #2d3148;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow-y: auto;
-  }
-
-  .panel-section h2 {
-    font-size: 11px;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-bottom: 12px;
-  }
-
-  /* Métricas en tiempo real */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .metric-card {
-    background: #0f1117;
-    border: 1px solid #2d3148;
-    border-radius: 8px;
-    padding: 10px 12px;
-  }
-
-  .metric-card .label {
-    font-size: 11px;
-    color: #64748b;
-    margin-bottom: 4px;
-  }
-
-  .metric-card .value {
-    font-size: 22px;
-    font-weight: 600;
-    color: #e2e8f0;
-    line-height: 1;
-  }
-
-  .metric-card .value.green { color: #4ade80; }
-  .metric-card .value.yellow { color: #facc15; }
-  .metric-card .value.red { color: #f87171; }
-
-  /* Barras de cola por vialidad */
-  .queue-bars { display: flex; flex-direction: column; gap: 8px; }
-
-  .queue-row { display: flex; flex-direction: column; gap: 3px; }
-
-  .queue-row .row-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #94a3b8;
-  }
-
-  .queue-row .bar-bg {
-    height: 8px;
-    background: #2d3148;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .queue-row .bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width .3s ease;
-    background: #3b82f6;
-  }
-
-  .queue-row .bar-fill.warn  { background: #f59e0b; }
-  .queue-row .bar-fill.danger { background: #ef4444; }
+  /* Panel */
+  .panel { background: #1a1d27; border-left: 1px solid #2d3148;
+           padding: 16px; display: flex; flex-direction: column; gap: 16px;
+           overflow-y: auto; }
+  .sec h2 { font-size: 10px; font-weight: 600; color: #64748b;
+            text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
 
   /* Semáforo visual */
-  .semaforo-visual {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    background: #0f1117;
-    border-radius: 8px;
-    border: 1px solid #2d3148;
-  }
-
-  .via-semaforo { text-align: center; }
-
-  .via-semaforo .via-label {
-    font-size: 10px;
-    color: #64748b;
-    margin-bottom: 6px;
-  }
-
-  .luz {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    margin: 0 auto;
-    transition: background .3s;
-  }
-
-  .luz.verde   { background: #4ade80; box-shadow: 0 0 8px #4ade8088; }
+  .sem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sem-card { background: #0f1117; border: 1px solid #2d3148; border-radius: 8px;
+              padding: 8px; text-align: center; }
+  .sem-card .label { font-size: 10px; color: #64748b; margin-bottom: 6px; }
+  .luz { width: 16px; height: 16px; border-radius: 50%; margin: 0 auto;
+         transition: background .3s; }
+  .luz.verde   { background: #4ade80; box-shadow: 0 0 8px #4ade8066; }
   .luz.rojo    { background: #374151; }
-  .luz.amarillo { background: #facc15; box-shadow: 0 0 8px #facc1588; }
+  .luz.amarillo{ background: #facc15; box-shadow: 0 0 8px #facc1566; }
+  .fase-label  { font-size: 11px; color: #64748b; text-align: center; margin-top: 4px; }
+  .bloqueada   { font-size: 10px; color: #f87171; text-align: center; margin-top: 2px; }
+
+  /* Métricas */
+  .met-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .met-card { background: #0f1117; border: 1px solid #2d3148;
+              border-radius: 8px; padding: 8px 10px; }
+  .met-card .lbl { font-size: 10px; color: #64748b; margin-bottom: 2px; }
+  .met-card .val { font-size: 20px; font-weight: 600; }
+  .val.green { color: #4ade80; } .val.yellow { color: #facc15; } .val.red { color: #f87171; }
+
+  /* Barras de cola */
+  .bar-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 6px; }
+  .bar-row .rh { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; }
+  .bar-bg { height: 6px; background: #2d3148; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width .3s; background: #3b82f6; }
+  .bar-fill.warn { background: #f59e0b; } .bar-fill.danger { background: #ef4444; }
 
   /* Controles */
-  .controls { display: flex; flex-direction: column; gap: 8px; }
-
-  .controls button {
-    padding: 8px 0;
-    border-radius: 8px;
-    border: 1px solid #2d3148;
-    background: #0f1117;
-    color: #e2e8f0;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background .15s;
-  }
-
-  .controls button:hover { background: #2d3148; }
-  .controls button.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
-
-  .speed-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    color: #94a3b8;
-  }
-
-  .speed-row input[type=range] { flex: 1; accent-color: #3b82f6; }
-
-  /* Tiempo de simulación */
-  .sim-time {
-    font-size: 12px;
-    color: #64748b;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
+  .ctrl { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl button { padding: 7px; border-radius: 8px; border: 1px solid #2d3148;
+                 background: #0f1117; color: #e2e8f0; font-size: 12px;
+                 cursor: pointer; transition: background .15s; }
+  .ctrl button:hover { background: #2d3148; }
+  .ctrl button.active { background: #1e3a5f; border-color: #3b82f6; color: #60a5fa; }
+  .speed-row { display: flex; align-items: center; gap: 8px;
+               font-size: 11px; color: #94a3b8; }
+  .speed-row input { flex: 1; accent-color: #3b82f6; }
 </style>
 </head>
 <body>
-
 <header>
   <div>
     <h1>Cruce Av. Toluca × Anillo Periférico</h1>
-    <div class="subtitle">Optimización de semáforo con Aprendizaje por Refuerzo</div>
+    <div class="sub">Optimización de semáforo con Aprendizaje por Refuerzo</div>
   </div>
-  <span class="badge badge-fijo" id="modo-badge">Semáforo fijo</span>
+  <div class="hora" id="hora">07:00</div>
 </header>
 
 <main>
-  <!-- Canvas del cruce -->
   <div class="canvas-wrap">
-    <canvas id="cruce" width="560" height="560"></canvas>
+    <canvas id="cruce" width="520" height="520"></canvas>
     <div class="sim-time" id="sim-time">t = 0 s</div>
   </div>
 
-  <!-- Panel derecho -->
   <div class="panel">
 
-    <!-- Semáforo visual -->
-    <div class="panel-section">
+    <!-- Semáforo -->
+    <div class="sec">
       <h2>Semáforo</h2>
-      <div class="semaforo-visual">
-        <div class="via-semaforo">
-          <div class="via-label">Av. Toluca</div>
-          <div class="luz rojo" id="luz-toluca"></div>
+      <div class="sem-grid">
+        <div class="sem-card">
+          <div class="label">Querétaro/Toluca</div>
+          <div class="luz rojo" id="luz-que"></div>
         </div>
-        <div class="via-semaforo">
-          <div class="via-label">Periférico</div>
-          <div class="luz rojo" id="luz-periferico"></div>
+        <div class="sem-card">
+          <div class="label">Lateral Norte</div>
+          <div class="luz rojo" id="luz-lat-nor"></div>
+        </div>
+        <div class="sem-card">
+          <div class="label">Lateral Sur oeste</div>
+          <div class="luz rojo" id="luz-lat-sur"></div>
         </div>
       </div>
-      <div style="font-size:11px; color:#64748b; text-align:center; margin-top:8px;" id="fase-label">—</div>
+      <div class="fase-label" id="fase-label">—</div>
+      <div class="bloqueada" id="bloqueada" style="display:none">⚠ Zona H bloqueada</div>
     </div>
 
-    <!-- Métricas en tiempo real -->
-    <div class="panel-section">
+    <!-- Métricas -->
+    <div class="sec">
       <h2>Métricas en tiempo real</h2>
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="label">Cola total</div>
-          <div class="value" id="m-cola-total">—</div>
+      <div class="met-grid">
+        <div class="met-card">
+          <div class="lbl">Cola total</div>
+          <div class="val" id="m-cola">—</div>
         </div>
-        <div class="metric-card">
-          <div class="label">Salidos / min</div>
-          <div class="value green" id="m-salidos">—</div>
+        <div class="met-card">
+          <div class="lbl">Salidos/min</div>
+          <div class="val green" id="m-sal">—</div>
         </div>
-        <div class="metric-card">
-          <div class="label">Verde Toluca</div>
-          <div class="value" id="m-verde-toluca">—</div>
+        <div class="met-card">
+          <div class="lbl">f1 Querétaro</div>
+          <div class="val" id="m-f1">—</div>
         </div>
-        <div class="metric-card">
-          <div class="label">Verde Periférico</div>
-          <div class="value" id="m-verde-peri">—</div>
+        <div class="met-card">
+          <div class="lbl">f2 Lat Norte</div>
+          <div class="val" id="m-f2">—</div>
+        </div>
+        <div class="met-card">
+          <div class="lbl">f3 Lat Sur</div>
+          <div class="val" id="m-f3">—</div>
+        </div>
+        <div class="met-card">
+          <div class="lbl">Ciclo total</div>
+          <div class="val" id="m-ciclo">—</div>
         </div>
       </div>
     </div>
 
-    <!-- Colas por vialidad -->
-    <div class="panel-section">
+    <!-- Colas -->
+    <div class="sec">
       <h2>Cola por vialidad</h2>
-      <div class="queue-bars" id="queue-bars"></div>
+      <div id="barras"></div>
     </div>
 
     <!-- Controles -->
-    <div class="panel-section">
+    <div class="sec">
       <h2>Controles</h2>
-      <div class="controls">
+      <div class="ctrl">
         <button id="btn-pausa" onclick="togglePausa()">⏸ Pausar</button>
         <button id="btn-reset" onclick="resetSim()">↺ Reiniciar</button>
       </div>
-      <div class="speed-row" style="margin-top:10px;">
+      <div class="speed-row" style="margin-top:8px">
         <span>Velocidad</span>
-        <input type="range" min="1" max="60" value="5" id="speed-slider"
+        <input type="range" min="1" max="60" value="5" id="sp-slider"
                oninput="setSpeed(this.value)">
-        <span id="speed-label">5×</span>
+        <span id="sp-lbl">5×</span>
       </div>
     </div>
 
@@ -293,199 +167,245 @@
 </main>
 
 <script>
-// ── Estado del frontend ───────────────────────────────────────
-let pausado = false;
-let frame = null;
-
-const VIALIDADES = ["toluca_arriba", "toluca_abajo", "periferico_norte", "periferico_sur"];
-const LABELS = {
-  toluca_arriba:    "Tol. →Periférico",
-  toluca_abajo:     "Tol. →Revolución",
-  periferico_norte: "Periférico Norte",
-  periferico_sur:   "Periférico Sur",
-};
-
-// ── Canvas ────────────────────────────────────────────────────
+// ── Canvas setup ─────────────────────────────────────────────
 const canvas = document.getElementById("cruce");
 const ctx = canvas.getContext("2d");
 const W = canvas.width, H = canvas.height;
 const CX = W / 2, CY = H / 2;
 
-// Dimensiones del cruce en el canvas
-const ANCHO_VIA = 60;
-const LARGO_COLA_MAX_PX = 180;
+// Dimensiones del cruce basadas en la geometría real del HTML source of truth
+const VIA_W = 28;       // ancho por carril en px
+const ZONA_H_X1 = 170, ZONA_H_X2 = 370;  // zona H horizontal
+const ZONA_H_Y1 = 170, ZONA_H_Y2 = 370;  // zona H vertical
+const LAT_Y1 = 90,  LAT_Y2 = 170;   // Lateral Norte  y=90..170
+const LAT_Y3 = 370, LAT_Y4 = 450;   // Lateral Sur    y=370..450
+
+const LABELS = {
+  queretaro_toluca:  "Querétaro/Toluca (4c fusionados)",
+  lateral_norte:     "Lateral Norte (4c)",
+  lateral_sur_oeste: "Lateral Sur oeste (2c rectos)",
+};
 
 function dibujarCruce(f) {
   ctx.clearRect(0, 0, W, H);
-
-  // Fondo
   ctx.fillStyle = "#1a1d27";
   ctx.fillRect(0, 0, W, H);
 
-  // Asfalto — vías
-  ctx.fillStyle = "#2d3148";
-  // Av. Toluca (vertical)
-  ctx.fillRect(CX - ANCHO_VIA, 0, ANCHO_VIA * 2, H);
-  // Periférico (horizontal)
-  ctx.fillRect(0, CY - ANCHO_VIA, W, ANCHO_VIA * 2);
-
-  // Líneas centrales
-  ctx.setLineDash([12, 8]);
-  ctx.strokeStyle = "#4a5568";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(CX, 0); ctx.lineTo(CX, H); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, CY); ctx.lineTo(W, CY); ctx.stroke();
-  ctx.setLineDash([]);
-
   if (!f) return;
 
-  // Colas por vialidad
-  const configs = {
-    toluca_arriba:    { axis: "y", dir: 1,  origin: [CX - ANCHO_VIA / 2, CY + ANCHO_VIA] },
-    toluca_abajo:     { axis: "y", dir: -1, origin: [CX + ANCHO_VIA / 2, CY - ANCHO_VIA] },
-    periferico_norte: { axis: "x", dir: 1,  origin: [CX - ANCHO_VIA, CY - ANCHO_VIA / 2] },
-    periferico_sur:   { axis: "x", dir: -1, origin: [CX + ANCHO_VIA, CY + ANCHO_VIA / 2] },
-  };
+  // ── Asfalto base ─────────────────────────────────────────
+  ctx.fillStyle = "#2d3148";
 
-  for (const [via, d] of Object.entries(configs)) {
-    const vd = f.vialidades[via];
-    if (!vd) continue;
-    const pct = vd.pct_ocupacion;
-    const longPx = pct * LARGO_COLA_MAX_PX;
+  // Zona H (cuerpo del Periférico)
+  ctx.fillRect(0, LAT_Y1, W, LAT_Y4 - LAT_Y1);
 
-    // Color de la barra según saturación
-    const color = vd.saturada ? "#ef4444"
-                : pct > 0.6    ? "#f59e0b"
-                :                "#3b82f6";
+  // Av. Toluca / Querétaro (vertical, ancho variable)
+  ctx.beginPath();
+  ctx.moveTo(180, 0); ctx.lineTo(360, 0);
+  ctx.lineTo(ZONA_H_X2, ZONA_H_Y1); ctx.lineTo(ZONA_H_X1, ZONA_H_Y1);
+  ctx.closePath(); ctx.fill();
 
-    ctx.fillStyle = color + "99";
-    if (d.axis === "y") {
-      const w = ANCHO_VIA - 6;
-      ctx.fillRect(d.origin[0] - w / 2 + 3, d.origin[1],
-                   w, d.dir * longPx);
-    } else {
-      const h = ANCHO_VIA - 6;
-      ctx.fillRect(d.origin[0], d.origin[1] - h / 2 + 3,
-                   d.dir * longPx, h);
-    }
+  // Zona H interna (más clara)
+  ctx.fillStyle = "#3a3d52";
+  ctx.fillRect(ZONA_H_X1, ZONA_H_Y1, ZONA_H_X2 - ZONA_H_X1, ZONA_H_Y2 - ZONA_H_Y1);
 
-    // Número de vehículos
-    ctx.fillStyle = "#e2e8f0";
-    ctx.font = "bold 13px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    const tx = d.axis === "y" ? d.origin[0] : d.origin[0] + d.dir * (longPx + 18);
-    const ty = d.axis === "y" ? d.origin[1] + d.dir * (longPx + 18) : d.origin[1];
-    ctx.fillText(vd.cola, tx, ty);
+  // Av. Toluca sur (sale hacia abajo)
+  ctx.fillStyle = "#2d3148";
+  ctx.beginPath();
+  ctx.moveTo(ZONA_H_X1, ZONA_H_Y2); ctx.lineTo(ZONA_H_X2, ZONA_H_Y2);
+  ctx.lineTo(360, H); ctx.lineTo(180, H);
+  ctx.closePath(); ctx.fill();
+
+  // ── Líneas divisorias ─────────────────────────────────────
+  ctx.setLineDash([10, 6]);
+  ctx.strokeStyle = "#4a5568";
+  ctx.lineWidth = 1;
+  // Centro Lateral Norte/Sur
+  ctx.beginPath(); ctx.moveTo(0, (LAT_Y1+LAT_Y2)/2); ctx.lineTo(ZONA_H_X1, (LAT_Y1+LAT_Y2)/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ZONA_H_X2, (LAT_Y1+LAT_Y2)/2); ctx.lineTo(W, (LAT_Y1+LAT_Y2)/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, (LAT_Y3+LAT_Y4)/2); ctx.lineTo(ZONA_H_X1, (LAT_Y3+LAT_Y4)/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ZONA_H_X2, (LAT_Y3+LAT_Y4)/2); ctx.lineTo(W, (LAT_Y3+LAT_Y4)/2); ctx.stroke();
+  // Centro Av. Toluca norte
+  ctx.beginPath(); ctx.moveTo(270, 0); ctx.lineTo(ZONA_H_X1+10, ZONA_H_Y1); ctx.stroke();
+  // Centro Av. Toluca sur
+  ctx.beginPath(); ctx.moveTo(ZONA_H_X1+10, ZONA_H_Y2); ctx.lineTo(270, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ── Colas por vialidad ────────────────────────────────────
+  if (!f.vialidades) return;
+
+  // queretaro_toluca: diagonal desde arriba-izquierda
+  drawCola_diagonal(f.vialidades["queretaro_toluca"], 3);
+  // toluca_norte: vertical arriba
+  drawCola_vertical_up(f.vialidades["toluca_norte"], 1);
+  // lateral_norte: horizontal desde derecha
+  drawCola_horiz_right(f.vialidades["lateral_norte"], 4);
+  // lateral_sur_oeste: horizontal desde izquierda
+  drawCola_horiz_left(f.vialidades["lateral_sur_oeste"], 2);
+
+  // ── Semáforos ─────────────────────────────────────────────
+  const semCols = f.vialidades;
+  dibujarSemaforo(ZONA_H_X1 - 16, ZONA_H_Y1 - 16, semCols["queretaro_toluca"]?.color_semaforo);
+  dibujarSemaforo(ZONA_H_X2 + 4,  ZONA_H_Y1 - 16, semCols["lateral_norte"]?.color_semaforo);
+  dibujarSemaforo(ZONA_H_X1 - 16, ZONA_H_Y2 + 4,  semCols["lateral_sur_oeste"]?.color_semaforo);
+  dibujarSemaforo(ZONA_H_X2 + 4,  ZONA_H_Y2 + 4,  semCols["toluca_norte"]?.color_semaforo);
+
+  // ── Zona H bloqueada ──────────────────────────────────────
+  if (f.semaforo?.zona_H_bloqueada) {
+    ctx.fillStyle = "rgba(239,68,68,0.12)";
+    ctx.fillRect(ZONA_H_X1, ZONA_H_Y1, ZONA_H_X2-ZONA_H_X1, ZONA_H_Y2-ZONA_H_Y1);
+    ctx.strokeStyle = "#ef4444";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5,4]);
+    ctx.strokeRect(ZONA_H_X1, ZONA_H_Y1, ZONA_H_X2-ZONA_H_X1, ZONA_H_Y2-ZONA_H_Y1);
+    ctx.setLineDash([]);
   }
 
-  // Semáforos en las esquinas de la intersección
-  dibujarSemaforo(f, CX - ANCHO_VIA - 14, CY - ANCHO_VIA - 14, f.vialidades.toluca_arriba?.color_semaforo);
-  dibujarSemaforo(f, CX + ANCHO_VIA + 2,  CY - ANCHO_VIA - 14, f.vialidades.toluca_abajo?.color_semaforo);
-  dibujarSemaforo(f, CX - ANCHO_VIA - 14, CY + ANCHO_VIA + 2,  f.vialidades.periferico_norte?.color_semaforo);
-  dibujarSemaforo(f, CX + ANCHO_VIA + 2,  CY + ANCHO_VIA + 2,  f.vialidades.periferico_sur?.color_semaforo);
-
-  // Etiqueta central
-  ctx.fillStyle = "#0f1117";
-  ctx.fillRect(CX - 30, CY - 12, 60, 24);
-  ctx.fillStyle = "#64748b";
+  // ── Etiquetas ─────────────────────────────────────────────
+  ctx.fillStyle = "#94a3b8";
   ctx.font = "10px sans-serif";
   ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("bajo nivel", CX, CY);
+  ctx.fillText("Zona H", CX, CY + 4);
+  ctx.fillText("Periférico →", W - 50, (LAT_Y1+LAT_Y2)/2 + 4);
+  ctx.fillText("← Periférico", 50, (LAT_Y3+LAT_Y4)/2 + 4);
 }
 
-function dibujarSemaforo(f, x, y, color) {
-  const r = 7;
+function barColor(pct) {
+  return pct >= 0.9 ? "#ef4444" : pct >= 0.6 ? "#f59e0b" : "#3b82f6";
+}
+
+function drawCola_diagonal(vd, nCarriles) {
+  if (!vd) return;
+  const pct = vd.pct_ocupacion;
+  const len = pct * 140;
+  ctx.fillStyle = barColor(pct) + "99";
+  // Diagonal aprox desde (80,40) hasta (ZONA_H_X1, ZONA_H_Y1)
+  const dx = ZONA_H_X1 - 80, dy = ZONA_H_Y1 - 40;
+  const angle = Math.atan2(dy, dx);
+  ctx.save();
+  ctx.translate(ZONA_H_X1, ZONA_H_Y1);
+  ctx.rotate(angle + Math.PI);
+  ctx.fillRect(0, -nCarriles * VIA_W / 2, len, nCarriles * VIA_W);
+  ctx.restore();
+  // Número
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(vd.cola, 90, 50);
+}
+
+function drawCola_vertical_up(vd, nCarriles) {
+  if (!vd) return;
+  const pct = vd.pct_ocupacion;
+  const len = pct * 120;
+  const cx = 330;
+  ctx.fillStyle = barColor(pct) + "99";
+  ctx.fillRect(cx - nCarriles*VIA_W/2, ZONA_H_Y1 - len, nCarriles*VIA_W, len);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(vd.cola, cx, ZONA_H_Y1 - len - 6);
+}
+
+function drawCola_horiz_right(vd, nCarriles) {
+  if (!vd) return;
+  const pct = vd.pct_ocupacion;
+  const len = pct * 130;
+  const cy = (LAT_Y1 + LAT_Y2) / 2;
+  ctx.fillStyle = barColor(pct) + "99";
+  ctx.fillRect(ZONA_H_X2, cy - nCarriles*VIA_W/2, len, nCarriles*VIA_W);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(vd.cola, ZONA_H_X2 + len + 6, cy + 4);
+}
+
+function drawCola_horiz_left(vd, nCarriles) {
+  if (!vd) return;
+  const pct = vd.pct_ocupacion;
+  const len = pct * 130;
+  const cy = (LAT_Y3 + LAT_Y4) / 2;
+  ctx.fillStyle = barColor(pct) + "99";
+  ctx.fillRect(ZONA_H_X1 - len, cy - nCarriles*VIA_W/2, len, nCarriles*VIA_W);
+  ctx.fillStyle = "#e2e8f0";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillText(vd.cola, ZONA_H_X1 - len - 6, cy + 4);
+}
+
+function dibujarSemaforo(x, y, color) {
   ctx.beginPath();
-  ctx.arc(x + r, y + r, r, 0, Math.PI * 2);
-  const col = color === "green"  ? "#4ade80"
-            : color === "yellow" ? "#facc15"
-            :                      "#374151";
-  ctx.fillStyle = col;
+  ctx.arc(x + 6, y + 6, 6, 0, Math.PI * 2);
+  ctx.fillStyle = color === "green" ? "#4ade80" : color === "yellow" ? "#facc15" : "#374151";
   ctx.fill();
 }
 
-// ── Polling del servidor ──────────────────────────────────────
+// ── UI updates ────────────────────────────────────────────────
+function actualizarUI(f) {
+  if (!f) return;
+  dibujarCruce(f);
+
+  document.getElementById("hora").textContent = f.hora || "—";
+  document.getElementById("sim-time").textContent = `t = ${f.t?.toLocaleString()} s`;
+
+  const cola = f.metricas?.cola_total ?? 0;
+  const mCola = document.getElementById("m-cola");
+  mCola.textContent = cola;
+  mCola.className = "val" + (cola > 150 ? " red" : cola > 80 ? " yellow" : "");
+  document.getElementById("m-sal").textContent = f.metricas?.salidos_ultimo_min ?? "—";
+  document.getElementById("m-f1").textContent = (f.semaforo?.duracion_fase_1 ?? "—") + "s";
+  document.getElementById("m-f2").textContent = (f.semaforo?.duracion_fase_2 ?? "—") + "s";
+  document.getElementById("m-f3").textContent    = (f.semaforo?.duracion_fase_3 ?? "—") + "s";
+  document.getElementById("m-ciclo").textContent = (f.semaforo?.ciclo_total ?? "—") + "s";
+
+  // Semáforos
+  const V = f.vialidades || {};
+  setLuz("luz-que",     V["queretaro_toluca"]?.color_semaforo);
+  setLuz("luz-lat-nor", V["lateral_norte"]?.color_semaforo);
+  setLuz("luz-lat-sur", V["lateral_sur_oeste"]?.color_semaforo);
+
+  const sem = f.semaforo || {};
+  document.getElementById("fase-label").textContent =
+    (sem.fase || "—").replace(/_/g," ") + ` — ${sem.tiempo_restante ?? "?"}s`;
+  const bloq = document.getElementById("bloqueada");
+  bloq.style.display = sem.zona_H_bloqueada ? "block" : "none";
+
+  // Barras de cola
+  const wrap = document.getElementById("barras");
+  wrap.innerHTML = "";
+  for (const [via, label] of Object.entries(LABELS)) {
+    const vd = V[via];
+    if (!vd) continue;
+    const pct = Math.round(vd.pct_ocupacion * 100);
+    const cls = vd.saturada ? "danger" : pct > 60 ? "warn" : "";
+    wrap.innerHTML += `<div class="bar-row">
+      <div class="rh"><span>${label}</span><span>${vd.cola}/${vd.capacidad}</span></div>
+      <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  }
+}
+
+function setLuz(id, color) {
+  const el = document.getElementById(id);
+  if (el) el.className = "luz " + (color === "green" ? "verde" : color === "yellow" ? "amarillo" : "rojo");
+}
+
+// ── Polling ───────────────────────────────────────────────────
+let pausado = false;
 
 async function fetchFrame() {
   try {
     const res = await fetch("/sim/frame");
-    if (!res.ok) return;
-    frame = await res.json();
-    actualizarUI(frame);
-  } catch (e) { /* servidor no disponible aún */ }
+    if (res.ok) actualizarUI(await res.json());
+  } catch {}
 }
-
-function actualizarUI(f) {
-  if (!f) return;
-
-  // Canvas
-  dibujarCruce(f);
-
-  // Tiempo
-  document.getElementById("sim-time").textContent =
-    `t = ${f.t.toLocaleString()} s  (${formatHora(f.t)})`;
-
-  // Métricas
-  const cola = f.metricas.cola_total;
-  const mCola = document.getElementById("m-cola-total");
-  mCola.textContent = cola;
-  mCola.className = "value" + (cola > 80 ? " red" : cola > 40 ? " yellow" : "");
-  document.getElementById("m-salidos").textContent = f.metricas.salidos_ultimo_min;
-  document.getElementById("m-verde-toluca").textContent =
-    (f.semaforo.duracion_toluca ?? "—") + "s";
-  document.getElementById("m-verde-peri").textContent =
-    (f.semaforo.duracion_periferico ?? "—") + "s";
-
-  // Semáforos
-  actualizarLuz("luz-toluca",     f.vialidades.toluca_arriba?.color_semaforo);
-  actualizarLuz("luz-periferico", f.vialidades.periferico_norte?.color_semaforo);
-  document.getElementById("fase-label").textContent =
-    (f.semaforo.fase ?? "").replace(/_/g, " ") +
-    ` — ${f.semaforo.tiempo_restante ?? "?"}s restantes`;
-
-  // Barras de cola
-  const wrap = document.getElementById("queue-bars");
-  wrap.innerHTML = "";
-  for (const via of VIALIDADES) {
-    const vd = f.vialidades[via];
-    if (!vd) continue;
-    const pct = Math.round(vd.pct_ocupacion * 100);
-    const colorClass = vd.saturada ? "danger" : pct > 60 ? "warn" : "";
-    wrap.innerHTML += `
-      <div class="queue-row">
-        <div class="row-header">
-          <span>${LABELS[via]}</span>
-          <span>${vd.cola} / ${vd.capacidad} veh</span>
-        </div>
-        <div class="bar-bg">
-          <div class="bar-fill ${colorClass}" style="width:${pct}%"></div>
-        </div>
-      </div>`;
-  }
-}
-
-function actualizarLuz(id, color) {
-  const el = document.getElementById(id);
-  el.className = "luz " + (color === "green" ? "verde" : color === "yellow" ? "amarillo" : "rojo");
-}
-
-function formatHora(t) {
-  const totalMin = Math.floor(t / 60);
-  const h = (7 + Math.floor(totalMin / 60)) % 24;
-  const m = totalMin % 60;
-  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-}
-
-// ── Controles ─────────────────────────────────────────────────
 
 async function togglePausa() {
   pausado = !pausado;
   const btn = document.getElementById("btn-pausa");
   btn.textContent = pausado ? "▶ Reanudar" : "⏸ Pausar";
   btn.className = pausado ? "active" : "";
-  await fetch(`/sim/control?accion=${pausado ? "pausar" : "reanudar"}`, { method: "POST" });
+  await fetch(`/sim/control?accion=${pausado?"pausar":"reanudar"}`, {method:"POST"});
 }
 
 async function resetSim() {
@@ -493,13 +413,11 @@ async function resetSim() {
 }
 
 async function setSpeed(val) {
-  document.getElementById("speed-label").textContent = val + "×";
-  await fetch(`/sim/control?accion=velocidad&valor=${val}`, { method: "POST" });
+  document.getElementById("sp-lbl").textContent = val + "×";
+  await fetch(`/sim/control?accion=velocidad&valor=${val}`, {method:"POST"});
 }
 
-// ── Loop principal ────────────────────────────────────────────
-
-setInterval(fetchFrame, 100);   // 10 fps
+setInterval(fetchFrame, 120);
 fetchFrame();
 </script>
 </body>

@@ -2,133 +2,102 @@
 viz/renderer.py
 ───────────────
 Traduce el estado interno del SimuladorCruce a un dict JSON
-que el frontend puede consumir para animar el cruce.
+que el frontend consume para animar el cruce.
 
-No dibuja nada directamente — esa responsabilidad es del frontend.
+3 vialidades con semáforo:
+  queretaro_toluca  — 4 carriles fusionados (fase 1)
+  lateral_norte     — 4 carriles (fase 2)
+  lateral_sur_oeste — 2 carriles rectos (fase 3)
 """
 
 from __future__ import annotations
-
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from sim.intersection import SimuladorCruce, VIALIDADES
 
-
-# Posiciones fijas de cada vialidad en el canvas del frontend
-# Coordenadas normalizadas (0.0 a 1.0), origen arriba-izquierda
 LAYOUT = {
-    "toluca_arriba": {
-        "direccion": "vertical",
-        "x": 0.45, "y_inicio": 0.85, "y_fin": 0.55,
-        "label": "Av. Toluca →Periférico",
+    "queretaro_toluca": {
+        "label": "Av. Querétaro/Toluca (4c)",
+        "carriles": 4,
+        "direccion": "diagonal_no_se",
     },
-    "toluca_abajo": {
-        "direccion": "vertical",
-        "x": 0.55, "y_inicio": 0.15, "y_fin": 0.45,
-        "label": "Av. Toluca →Revolución",
+    "lateral_norte": {
+        "label": "Lateral Norte ← (4c)",
+        "carriles": 4,
+        "direccion": "horizontal_left",
     },
-    "periferico_norte": {
-        "direccion": "horizontal",
-        "y": 0.45, "x_inicio": 0.15, "x_fin": 0.45,
-        "label": "Periférico Norte",
-    },
-    "periferico_sur": {
-        "direccion": "horizontal",
-        "y": 0.55, "x_inicio": 0.85, "x_fin": 0.55,
-        "label": "Periférico Sur",
+    "lateral_sur_oeste": {
+        "label": "Lateral Sur → (2c)",
+        "carriles": 2,
+        "direccion": "horizontal_right",
     },
 }
 
-# Colores del semáforo para el frontend
 COLORES_FASE = {
-    "verde_toluca":     {"toluca_arriba": "green",  "toluca_abajo": "green",
-                         "periferico_norte": "red",  "periferico_sur": "red"},
-    "verde_periferico": {"toluca_arriba": "red",    "toluca_abajo": "red",
-                         "periferico_norte": "green","periferico_sur": "green"},
-    "amarillo_1":       {v: "yellow" for v in VIALIDADES},
-    "amarillo_2":       {v: "yellow" for v in VIALIDADES},
+    "fase_1":    {"queretaro_toluca": "green", "lateral_norte": "red",   "lateral_sur_oeste": "red"},
+    "amarillo_1":{"queretaro_toluca": "yellow","lateral_norte": "yellow","lateral_sur_oeste": "yellow"},
+    "fase_2":    {"queretaro_toluca": "red",   "lateral_norte": "green", "lateral_sur_oeste": "red"},
+    "amarillo_2":{"queretaro_toluca": "yellow","lateral_norte": "yellow","lateral_sur_oeste": "yellow"},
+    "fase_3":    {"queretaro_toluca": "red",   "lateral_norte": "red",   "lateral_sur_oeste": "green"},
+    "amarillo_3":{"queretaro_toluca": "yellow","lateral_norte": "yellow","lateral_sur_oeste": "yellow"},
+}
+
+PREFIJOS = {
+    "queretaro_toluca":  "que_tol",
+    "lateral_norte":     "lat_nor",
+    "lateral_sur_oeste": "lat_sur",
 }
 
 
 class Renderer:
-    """
-    Mantiene una referencia al simulador y genera frames JSON
-    en cada llamada a get_frame().
-    """
-
     def __init__(self, sim: SimuladorCruce):
         self.sim = sim
 
     def get_frame(self) -> dict:
-        """
-        Genera el frame actual del cruce para el frontend.
-
-        Estructura del frame:
-        {
-          "t": int,
-          "vialidades": { nombre: { "cola": int, "color_semaforo": str,
-                                    "layout": {...}, "saturada": bool } },
-          "semaforo": { "fase": str, "tiempo_restante": int, ... },
-          "metricas": { "cola_total": int, "salidos_ultimo_min": int }
-        }
-        """
         sem_info = self.sim.semaforo.get_estado()
         fase = sem_info["fase"]
         colores = COLORES_FASE.get(fase, {v: "red" for v in VIALIDADES})
 
-        # Agrupar colas por vialidad (suma de carriles)
-        colas_por_vialidad = self._colas_por_vialidad()
-
+        colas = self._colas_por_vialidad()
         vialidades_frame = {}
         for v in VIALIDADES:
-            cola = colas_por_vialidad.get(v, 0)
-            capacidad = self.sim.geometria.capacidad_total(v)
+            cola = colas.get(v, 0)
+            capacidad = max(self.sim.geometria.capacidad_total(v), 1)
             vialidades_frame[v] = {
-                "cola":            cola,
-                "capacidad":       capacidad,
-                "pct_ocupacion":   round(cola / max(capacidad, 1), 3),
-                "color_semaforo":  colores.get(v, "red"),
-                "saturada":        cola >= capacidad * 0.9,
-                "layout":          LAYOUT[v],
+                "cola":           cola,
+                "capacidad":      capacidad,
+                "pct_ocupacion":  round(cola / capacidad, 3),
+                "color_semaforo": colores.get(v, "red"),
+                "saturada":       cola >= capacidad * 0.9,
+                "layout":         LAYOUT[v],
             }
 
-        # Métricas del último minuto
-        historia = self.sim.monitor._historia
-        salidos_ultimo_min = int(sum(historia["salidos"][-60:])) if historia["salidos"] else 0
+        hist = self.sim.monitor._historia
+        salidos_min = int(sum(hist["salidos"][-60:])) if hist["salidos"] else 0
+        t = self.sim.t
+        hora_str = f"{(t//3600+7)%24:02d}:{(t%3600)//60:02d}"
 
         return {
-            "t":          self.sim.t,
+            "t":     t,
+            "hora":  hora_str,
             "vialidades": vialidades_frame,
             "semaforo":   sem_info,
             "metricas": {
-                "cola_total":        sum(colas_por_vialidad.values()),
-                "salidos_ultimo_min": salidos_ultimo_min,
+                "cola_total":         sum(colas.values()),
+                "salidos_ultimo_min": salidos_min,
+                "n_bloqueadores":     getattr(self.sim, "_n_bloqueadores_activos", 0),
             },
         }
 
-    def get_metrics_comparison(self,
-                                resumen_base: Optional[dict],
-                                resumen_rl: Optional[dict]) -> dict:
-        """
-        Genera el payload para el dashboard de comparación
-        baseline vs agente RL.
-        """
+    def get_metrics_comparison(self, resumen_base, resumen_rl) -> dict:
         return {
-            "baseline": resumen_base or {},
-            "rl":       resumen_rl or {},
+            "baseline":   resumen_base or {},
+            "rl":         resumen_rl or {},
             "disponible": resumen_base is not None and resumen_rl is not None,
         }
 
     def _colas_por_vialidad(self) -> Dict[str, int]:
-        prefijos = {
-            "toluca_arriba":    "tol_arr",
-            "toluca_abajo":     "tol_aba",
-            "periferico_norte": "per_nor",
-            "periferico_sur":   "per_sur",
-        }
-        resultado = {}
         colas = self.sim.get_colas()
-        for vialidad, prefijo in prefijos.items():
-            resultado[vialidad] = sum(
-                len(q) for cid, q in colas.items() if cid.startswith(prefijo)
-            )
-        return resultado
+        return {
+            via: sum(len(q) for cid, q in colas.items() if cid.startswith(pref))
+            for via, pref in PREFIJOS.items()
+        }
