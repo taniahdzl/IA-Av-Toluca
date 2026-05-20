@@ -347,8 +347,8 @@ class SimuladorCruce:
         if not accion or accion not in ajustes:
             return
         dt, dp = ajustes[accion]
-        # Restricción: no bajar fase_1 por debajo de 40s
-        if dt < 0 and self.semaforo.duracion_fase_1 + dt < 40:
+        # Restricción: no bajar fase_1 por debajo de 30s
+        if dt < 0 and self.semaforo.duracion_fase_1 + dt < 30:
             return  # ignorar acción destructiva
         self.semaforo.ajustar_duracion(dt, dp)
 
