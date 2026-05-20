@@ -1,22 +1,30 @@
 """
 sim/traffic_light.py
 ────────────────────
-Semáforo con 3 fases reales del cruce Av. Toluca × Periférico:
+Semáforo con 3 fases independientes del cruce Av. Toluca × Periférico:
 
-  Fase 1 (51s): Verde Av. Querétaro/Toluca arriba
-    - Zona H puede vaciarse hacia Av. Toluca sur y Lateral Sur este
+  Fase 1: Verde Av. Querétaro/Toluca
+    - Zona H puede vaciarse hacia Lateral Sur este
     - Rojo: Lateral Norte, Lateral Sur oeste
 
   Amarillo 1→2 (3s)
 
-  Fase 2 (47s): Verde Lateral Norte + Lateral Sur oeste
-    - CRÍTICO: Lateral Sur oeste cruza perpendicularmente →
-      zona H queda bloqueada aunque Lateral Norte tenga verde
-    - Rojo: Av. Querétaro/Toluca
+  Fase 2: Verde Lateral Norte
+    - Lateral Norte entra a zona H
+    - Zona H bloqueada (Lateral Sur oeste cruza perp.)
+    - Rojo: Querétaro/Toluca, Lateral Sur oeste
 
-  Amarillo 2→1 (3s)
+  Amarillo 2→3 (3s)
 
-El agente de RL ajusta las duraciones de fase_1 y fase_2.
+  Fase 3: Verde Lateral Sur oeste (rectos)
+    - Solo los 2 carriles rectos cruzan hacia Lateral Sur este
+    - Nadie puede incorporarse a Lateral Sur este desde zona H
+    - Rojo: Querétaro/Toluca, Lateral Norte
+
+  Amarillo 3→1 (3s)
+
+El agente de RL ajusta t1, t2, t3 independientemente.
+Ciclo base observado en campo: t1=51s, t2+t3=47s (no separados).
 """
 
 from __future__ import annotations
@@ -26,12 +34,11 @@ from typing import List
 
 import numpy as np
 
-TIEMPO_AMARILLO = 3   # segundos — fijo, dato real de campo
+TIEMPO_AMARILLO = 3
 
 
 @dataclass(frozen=True)
 class Fase:
-    """Una fase del semáforo. Inmutable."""
     nombre: str
     carriles_verde: List[str]
     duracion: int
@@ -39,28 +46,38 @@ class Fase:
 
 class Semaforo:
     """
-    Controla el ciclo de 4 fases del semáforo real del cruce.
+    Semáforo de 3 fases independientes.
 
-    Fases:
-      0 → fase_1:    verde Av. Querétaro/Toluca (ajustable por RL)
-      1 → amarillo_1: transición (fijo 3s)
-      2 → fase_2:    verde Lateral Norte + Lateral Sur oeste (ajustable por RL)
-      3 → amarillo_2: transición (fijo 3s)
-
-    Duraciones iniciales calibradas con datos de campo:
-      fase_1 = 51s, fase_2 = 47s, ciclo total = 104s + 6s amarillo = 110s
+    Acciones del agente (7 acciones):
+      0 → no hacer nada
+      1 → +10s fase_1   2 → -10s fase_1
+      3 → +10s fase_2   4 → -10s fase_2
+      5 → +10s fase_3   6 → -10s fase_3
     """
 
-    DURACION_MIN = 15
+    DURACION_MIN = 10
     DURACION_MAX = 120
 
-    def __init__(self, duracion_fase_1: int = 51, duracion_fase_2: int = 47,
+    def __init__(self,
+                 duracion_fase_1: int = 51,
+                 duracion_fase_2: int = 25,
+                 duracion_fase_3: int = 22,
                  carriles_fase_1: List[str] = None,
-                 carriles_fase_2: List[str] = None):
+                 carriles_fase_2: List[str] = None,
+                 carriles_fase_3: List[str] = None):
+        """
+        Duraciones iniciales:
+          fase_1 = 51s  (dato real de campo)
+          fase_2 = 25s  (estimación: Lateral Norte, mitad del tiempo observado)
+          fase_3 = 22s  (estimación: Lateral Sur oeste, otra mitad)
+          Total ≈ 51 + 25 + 22 + 9s amarillo = 107s ≈ ciclo real de 111s
+        """
         self.duracion_fase_1 = duracion_fase_1
         self.duracion_fase_2 = duracion_fase_2
+        self.duracion_fase_3 = duracion_fase_3
         self._carriles_fase_1 = carriles_fase_1 or []
         self._carriles_fase_2 = carriles_fase_2 or []
+        self._carriles_fase_3 = carriles_fase_3 or []
         self._construir_fases()
         self.reset()
 
@@ -68,37 +85,33 @@ class Semaforo:
 
     @classmethod
     def desde_calibracion(cls, flujos: dict, geometria) -> "Semaforo":
-        """
-        Construye el semáforo desde flujos_calibrados.json con carriles reales.
-        """
         tiempos = flujos["tiempos_semaforo_observados"]
         t1 = tiempos["verde_queretaro_toluca_s"]
-        t2 = tiempos["verde_lateral_norte_s"]
+        # Dividir el verde observado de lateral entre fase_2 y fase_3
+        t_lateral = tiempos["verde_lateral_norte_s"]
+        t2 = round(t_lateral * 0.55)   # 55% Lateral Norte
+        t3 = t_lateral - t2            # 45% Lateral Sur oeste
 
-        carriles_f1, carriles_f2 = [], []
+        c1, c2, c3 = [], [], []
         for via in ["queretaro_toluca", "toluca_norte"]:
-            for c in geometria.carriles_de(via):
-                carriles_f1.append(c.id)
-        for via in ["lateral_norte", "lateral_sur_oeste"]:
-            for c in geometria.carriles_de(via):
-                carriles_f2.append(c.id)
+            for c in geometria.carriles_de(via): c1.append(c.id)
+        for via in ["lateral_norte"]:
+            for c in geometria.carriles_de(via): c2.append(c.id)
+        for via in ["lateral_sur_oeste"]:
+            for c in geometria.carriles_de(via): c3.append(c.id)
 
-        return cls(
-            duracion_fase_1=t1,
-            duracion_fase_2=t2,
-            carriles_fase_1=carriles_f1,
-            carriles_fase_2=carriles_f2,
-        )
+        return cls(duracion_fase_1=t1, duracion_fase_2=t2, duracion_fase_3=t3,
+                   carriles_fase_1=c1, carriles_fase_2=c2, carriles_fase_3=c3)
 
     @classmethod
     def dummy(cls) -> "Semaforo":
-        """Semáforo con las fases reales observadas en campo (mediodía 19/05/2026)."""
         return cls(
             duracion_fase_1=51,
-            duracion_fase_2=47,
-            carriles_fase_1=["que_tol_1", "que_tol_2", "que_tol_3", "tol_nor_1"],
-            carriles_fase_2=["lat_nor_1", "lat_nor_2", "lat_nor_3", "lat_nor_4",
-                             "lat_sur_1", "lat_sur_2"],
+            duracion_fase_2=25,
+            duracion_fase_3=22,
+            carriles_fase_1=["que_tol_1","que_tol_2","que_tol_3","tol_nor_1"],
+            carriles_fase_2=["lat_nor_1","lat_nor_2","lat_nor_3","lat_nor_4"],
+            carriles_fase_3=["lat_sur_1","lat_sur_2"],
         )
 
     def _construir_fases(self):
@@ -107,6 +120,8 @@ class Semaforo:
             Fase("amarillo_1", [],                   TIEMPO_AMARILLO),
             Fase("fase_2",    self._carriles_fase_2, self.duracion_fase_2),
             Fase("amarillo_2", [],                   TIEMPO_AMARILLO),
+            Fase("fase_3",    self._carriles_fase_3, self.duracion_fase_3),
+            Fase("amarillo_3", [],                   TIEMPO_AMARILLO),
         ]
 
     # ── Control ──────────────────────────────────────────────
@@ -116,7 +131,6 @@ class Semaforo:
         self._t_en_fase = 0
 
     def tick(self) -> bool:
-        """Avanza 1 segundo. Retorna True si cambió de fase."""
         self._t_en_fase += 1
         if self._t_en_fase >= self.fase_actual.duracion:
             self._t_en_fase = 0
@@ -124,19 +138,18 @@ class Semaforo:
             return True
         return False
 
-    def ajustar_duracion(self, delta_fase_1: int = 0, delta_fase_2: int = 0):
-        """
-        Modifica los tiempos de verde. Llamado por el agente de RL.
-        Clampea al rango [DURACION_MIN, DURACION_MAX].
-        """
-        self.duracion_fase_1 = int(
-            np.clip(self.duracion_fase_1 + delta_fase_1,
-                    self.DURACION_MIN, self.DURACION_MAX)
-        )
-        self.duracion_fase_2 = int(
-            np.clip(self.duracion_fase_2 + delta_fase_2,
-                    self.DURACION_MIN, self.DURACION_MAX)
-        )
+    def ajustar_duracion(self, delta_fase_1: int = 0,
+                          delta_fase_2: int = 0,
+                          delta_fase_3: int = 0):
+        self.duracion_fase_1 = int(np.clip(
+            self.duracion_fase_1 + delta_fase_1,
+            self.DURACION_MIN, self.DURACION_MAX))
+        self.duracion_fase_2 = int(np.clip(
+            self.duracion_fase_2 + delta_fase_2,
+            self.DURACION_MIN, self.DURACION_MAX))
+        self.duracion_fase_3 = int(np.clip(
+            self.duracion_fase_3 + delta_fase_3,
+            self.DURACION_MIN, self.DURACION_MAX))
         self._construir_fases()
 
     # ── Consultas ────────────────────────────────────────────
@@ -154,15 +167,23 @@ class Semaforo:
     def es_fase_2(self) -> bool:
         return self.fase_actual.nombre == "fase_2"
 
+    def es_fase_3(self) -> bool:
+        return self.fase_actual.nombre == "fase_3"
+
     def es_amarillo(self) -> bool:
         return self.fase_actual.nombre.startswith("amarillo")
 
     def zona_H_bloqueada(self) -> bool:
         """
-        True durante fase_2: Lateral Sur oeste cruza perpendicularmente,
-        impidiendo que los vehículos en zona H puedan salir.
+        True durante fase_2 (Lateral Norte entra a zona H pero
+        Lateral Sur oeste no está cruzando todavía) y fase_3
+        (Lateral Sur oeste cruza, nadie puede salir de zona H).
         """
-        return self.es_fase_2()
+        return self.es_fase_2() or self.es_fase_3()
+
+    def lateral_sur_cruzando(self) -> bool:
+        """True durante fase_3: los rectos de Lateral Sur oeste cruzan."""
+        return self.es_fase_3()
 
     def tiempo_restante(self) -> int:
         return self.fase_actual.duracion - self._t_en_fase
@@ -173,12 +194,14 @@ class Semaforo:
 
     def get_estado(self) -> dict:
         return {
-            "fase":            self.fase_actual.nombre,
-            "fase_idx":        self._fase_idx,
-            "tiempo_restante": self.tiempo_restante(),
-            "es_amarillo":     self.es_amarillo(),
-            "zona_H_bloqueada": self.zona_H_bloqueada(),
-            "duracion_fase_1": self.duracion_fase_1,
-            "duracion_fase_2": self.duracion_fase_2,
-            "ciclo_total":     self.ciclo_total,
+            "fase":                 self.fase_actual.nombre,
+            "fase_idx":             self._fase_idx,
+            "tiempo_restante":      self.tiempo_restante(),
+            "es_amarillo":          self.es_amarillo(),
+            "zona_H_bloqueada":     self.zona_H_bloqueada(),
+            "lateral_sur_cruzando": self.lateral_sur_cruzando(),
+            "duracion_fase_1":      self.duracion_fase_1,
+            "duracion_fase_2":      self.duracion_fase_2,
+            "duracion_fase_3":      self.duracion_fase_3,
+            "ciclo_total":          self.ciclo_total,
         }

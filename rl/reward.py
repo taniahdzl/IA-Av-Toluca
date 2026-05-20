@@ -146,12 +146,64 @@ def reward_ponderada(info: dict) -> float:
     )
     return -penalizacion_colas + premio_salidas - penalizacion_bloqueo - n_saturados * W_SATURACION
 
+
+def reward_asimetrica(info: dict) -> float:
+    """
+    Función de recompensa asimétrica para 3 fases independientes.
+
+    1. Penalización cuadrática para queretaro_toluca (cuello de botella)
+    2. Penalización lineal para laterales
+    3. Reward shaping gaussiano hacia el óptimo empírico:
+       fase_1 ≈ 62s, fase_2 ≈ 25s, fase_3 ≈ 20s
+    4. Premio por throughput
+    5. Penalización por bloqueo zona H y saturación
+    """
+    import math
+    colas = info["colas"]
+
+    # ── 1. Penalización cuadrática cuello de botella ──
+    cola_que = sum(colas.get(f"que_tol_{i}", 0) for i in range(1, 4))
+    cola_tol = colas.get("tol_nor_1", 0)
+    cola_lat = sum(colas.get(f"lat_nor_{i}", 0) for i in range(1, 5))
+    cola_sur = sum(colas.get(f"lat_sur_{i}", 0) for i in range(1, 3))
+
+    pen_cuello  = (cola_que ** 1.5) * 0.08 + (cola_tol ** 1.5) * 0.04
+    pen_lateral = (cola_lat + cola_sur) * 0.1
+
+    # ── 2. Premio por throughput ──────────────────────
+    premio = info["salidos_step"] * 3.0
+
+    # ── 3. Reward shaping: bonus gaussiano por fase ──
+    # Óptimos empíricos del grid search
+    sem = info.get("semaforo", {})
+    f1 = sem.get("duracion_fase_1", 51)
+    f2 = sem.get("duracion_fase_2", 25)
+    f3 = sem.get("duracion_fase_3", 22)
+
+    bonus_f1 = 40.0 * math.exp(-((f1 - 62) ** 2) / (2 * 8 ** 2))
+    bonus_f2 = 20.0 * math.exp(-((f2 - 25) ** 2) / (2 * 6 ** 2))
+    bonus_f3 = 20.0 * math.exp(-((f3 - 20) ** 2) / (2 * 5 ** 2))
+    bonus_ratio = bonus_f1 + bonus_f2 + bonus_f3
+
+    # ── 4. Penalización bloqueo y saturación ─────────
+    pen_bloqueo = info.get("n_bloqueadores", 0) * 20.0
+    capacidades = info.get("capacidades", {})
+    n_sat = sum(
+        1 for cid, q in colas.items()
+        if q >= capacidades.get(cid, 15) * 0.9
+    )
+    pen_sat = n_sat * W_SATURACION
+
+    return -pen_cuello - pen_lateral + premio + bonus_ratio - pen_bloqueo - pen_sat
+
+
 FUNCIONES: Dict[str, Callable[[dict], float]] = {
     "simple":      reward_simple,
     "balanceada":  reward_balanceada,
     "equidad":     reward_equidad,
     "flickering":  reward_con_flickering,
     "ponderada":   reward_ponderada,
+    "asimetrica":  reward_asimetrica,
 }
 
 

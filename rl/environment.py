@@ -35,11 +35,13 @@ EPISODE_DURATION = int(os.getenv("SIM_EPISODE_DURATION", 3600))
 
 # Número de acciones discretas del agente
 # 0: no hacer nada
-# 1: +10s verde Toluca
-# 2: -10s verde Toluca
-# 3: +10s verde Periférico
-# 4: -10s verde Periférico
-N_ACCIONES = 5
+# 1: +10s fase_1 (Querétaro/Toluca)
+# 2: -10s fase_1
+# 3: +10s fase_2 (Lateral Norte)
+# 4: -10s fase_2
+# 5: +10s fase_3 (Lateral Sur oeste rectos)
+# 6: -10s fase_3
+N_ACCIONES = 7
 
 
 class CruceEnv(gym.Env):
@@ -72,8 +74,8 @@ class CruceEnv(gym.Env):
         self._ultimo_estado_render: Optional[dict] = None
 
         # ── Espacios ─────────────────────────────────────────
-        # Observación: 9 valores continuos en [0, 1]
-        # [cola×4, t_restante, fase, periodo, espera_queretaro, ratio_fases]
+        # Observación: 10 valores continuos en [0, 1]
+        # [cola×4, t_restante, fase, periodo, espera_queretaro, ratio_f1, ratio_f3]
         self.observation_space = spaces.Box(
             low=0.0, high=1.0,
             shape=(ESTADO_DIM,),

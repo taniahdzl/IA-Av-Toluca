@@ -57,8 +57,8 @@ TASA_DESCARGA_DEFAULT: Dict[str, float] = {
 }
 
 # Vector de estado para el agente de RL
-# [cola×4, t_restante, fase_idx, periodo, espera_queretaro, ratio_fases]
-ESTADO_DIM = 9
+# [cola×4, t_restante, fase_idx, periodo, espera_queretaro, ratio_f1, ratio_f3]
+ESTADO_DIM = 10
 
 
 class SimuladorCruce:
@@ -270,7 +270,7 @@ class SimuladorCruce:
 
     def get_estado(self) -> np.ndarray:
         """
-        Vector de observación de dimensión ESTADO_DIM (9) para el agente de RL.
+        Vector de observación de dimensión ESTADO_DIM (10) para el agente de RL.
 
         [0-3] cola normalizada por vialidad (suma de carriles / capacidad total)
         [4]   tiempo restante en fase actual (normalizado a [0,1])
@@ -309,14 +309,17 @@ class SimuladorCruce:
         ]
         espera_norm = min(np.mean(esperas_que) / 300.0, 1.0) if esperas_que else 0.0
 
-        # [8] Ratio de tiempo: fase_1 / ciclo_verde_total
-        # indica si el semáforo favorece a queretaro/toluca (>0.5) o lateral (< 0.5)
-        ciclo_verde = self.semaforo.duracion_fase_1 + self.semaforo.duracion_fase_2
-        ratio_fases = self.semaforo.duracion_fase_1 / max(ciclo_verde, 1)
+        # [8] ratio fase_1 / ciclo total
+        ciclo_verde = (self.semaforo.duracion_fase_1 + self.semaforo.duracion_fase_2
+                       + self.semaforo.duracion_fase_3)
+        ratio_f1 = self.semaforo.duracion_fase_1 / max(ciclo_verde, 1)
+
+        # [9] ratio fase_3 / ciclo total — tiempo que ocupa Lat Sur oeste rectos
+        ratio_f3 = self.semaforo.duracion_fase_3 / max(ciclo_verde, 1)
 
         return np.array(
             colas_norm + [t_restante_norm, fase_norm, periodo_norm,
-                          float(espera_norm), float(ratio_fases)],
+                          float(espera_norm), float(ratio_f1), float(ratio_f3)],
             dtype=np.float32
         )
 
@@ -338,19 +341,17 @@ class SimuladorCruce:
     def _aplicar_accion(self, accion: Optional[int]):
         """
         Traduce la acción discreta del agente en ajuste del semáforo.
-
-        Restricción: fase_1 no puede bajar de 40s.
-        Esto evita que el agente colapse el cruce reduciendo demasiado
-        el tiempo de verde de queretaro_toluca.
+        0=nada, 1/2=±fase_1, 3/4=±fase_2, 5/6=±fase_3
         """
-        ajustes = {1: (10, 0), 2: (-10, 0), 3: (0, 10), 4: (0, -10)}
+        ajustes = {
+            1: (10,  0,  0), 2: (-10, 0,  0),
+            3: (0,  10,  0), 4: (0, -10,  0),
+            5: (0,   0, 10), 6: (0,   0,-10),
+        }
         if not accion or accion not in ajustes:
             return
-        dt, dp = ajustes[accion]
-        # Restricción: no bajar fase_1 por debajo de 30s
-        if dt < 0 and self.semaforo.duracion_fase_1 + dt < 30:
-            return  # ignorar acción destructiva
-        self.semaforo.ajustar_duracion(dt, dp)
+        d1, d2, d3 = ajustes[accion]
+        self.semaforo.ajustar_duracion(d1, d2, d3)
 
     def _generar_llegadas(self, periodo: int) -> List[Vehiculo]:
         """
@@ -533,7 +534,7 @@ class SimuladorCruce:
                 self._n_bloqueadores_activos = 0
 
         # ── Limpiar bloqueadores al terminar fase_2 ───────────
-        if self.semaforo.es_amarillo() and self.semaforo._fase_idx == 3:
+        if self.semaforo.es_amarillo() and self.semaforo._fase_idx == 5:
             for vialidad in ["queretaro_toluca", "toluca_norte"]:
                 for carril in self.geometria.carriles_de(vialidad):
                     for veh in self._colas[carril.id]:
