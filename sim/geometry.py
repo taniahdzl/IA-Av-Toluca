@@ -123,30 +123,37 @@ class GeometriaCruce:
         y datos de campo (longitudes pendientes de medición completa).
         """
         carriles: Dict[str, List[Carril]] = {}
+        # Longitudes calibradas con OSM (19.340477, -99.203100, r=400m)
+        # + observación de campo. Capacidad = longitud / (4.1m veh + 1.0m sep)
         configuraciones = {
-            # Av. Querétaro diagonal → Av. Toluca: 3 carriles, todos recto hacia zona H
+            # Av. Querétaro diagonal → Av. Toluca: 3 carriles
+            # Longitud: segmentos OSM ~417m / 2 sentidos = 180m
             "queretaro_toluca": [
-                (1, ["recto"], 60.0),
-                (2, ["recto"], 60.0),
-                (3, ["recto"], 60.0),
+                (1, ["recto"], 180.0),
+                (2, ["recto"], 180.0),
+                (3, ["recto"], 180.0),
             ],
-            # Av. Toluca norte: 1 carril, longitud real 20m (medida en campo)
+            # Av. Toluca norte: 1 carril
+            # Longitud: segmento tertiary OSM = 52m
             "toluca_norte": [
-                (1, ["recto", "izquierda"], 20.0),
+                (1, ["recto", "izquierda"], 52.0),
             ],
-            # Lateral Norte ← oeste: 4 carriles
-            # mayoría vira izquierda a zona H, minoría sigue recto
+            # Lateral Norte (Blvd. López Mateos) ← oeste: 4 carriles
+            # 3 carriles OSM + 1 que se junta físicamente = 4 efectivos
+            # Longitud: ~325m / 2 sentidos = 160m
             "lateral_norte": [
-                (1, ["izquierda"],           60.0),
-                (2, ["izquierda", "recto"],  60.0),
-                (3, ["izquierda", "recto"],  60.0),
-                (4, ["recto"],               60.0),
+                (1, ["izquierda"],           160.0),
+                (2, ["izquierda", "recto"],  160.0),
+                (3, ["izquierda", "recto"],  160.0),
+                (4, ["recto"],               160.0),
             ],
-            # Lateral Sur oeste: solo 2 carriles rectos con semáforo
-            # (retorno y vuelta continua son flujos independientes sin semáforo)
+            # Lateral Sur oeste: solo los 2 carriles rectos con semáforo
+            # Retorno (→ Lateral Norte) y vuelta continua (→ Av. Toluca sur)
+            # son flujos independientes sin semáforo, no se modelan aquí
+            # Longitud: mismo tramo López Mateos = 160m
             "lateral_sur_oeste": [
-                (1, ["recto"], 60.0),
-                (2, ["recto"], 60.0),
+                (1, ["recto"], 160.0),
+                (2, ["recto"], 160.0),
             ],
         }
         for vialidad, configs in configuraciones.items():

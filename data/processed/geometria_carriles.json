@@ -2,16 +2,12 @@
   "_descripcion": "Geometría real del cruce calibrada con observación de campo + HTML source of truth.",
   "_fecha_calibracion": "2026-05-19",
   "_fuente": "cruce_toluca_periferico.html + observacion_campo.docx",
-
   "_nota_estructura": "4 vialidades de entrada con semáforo. La vuelta continua y el retorno son flujos independientes sin semáforo y no se modelan como vialidades de entrada.",
-
   "_flujos_independientes": {
     "retorno_zona_H": "Lateral Sur oeste carril 1 → Lateral Norte. Flujo libre, no tiene semáforo. Ocupa espacio físico en zona H pero no interactúa con el ciclo semafórico.",
     "vuelta_continua": "Lateral Sur oeste carril 4 → Av. Toluca sur. Flujo libre, no tiene semáforo."
   },
-
   "vialidades": {
-
     "queretaro_toluca": {
       "nombre_completo": "Av. Querétaro diagonal → Av. Toluca norte",
       "descripcion": "3 carriles diagonales que vienen del noroeste y se fusionan con Av. Toluca antes de la zona H.",
@@ -20,31 +16,36 @@
         {
           "id": "que_tol_1",
           "numero": 1,
-          "movimientos_permitidos": ["recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 180.0,
+          "capacidad_vehiculos": 35,
           "ancho_estimado_m": null
         },
         {
           "id": "que_tol_2",
           "numero": 2,
-          "movimientos_permitidos": ["recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 180.0,
+          "capacidad_vehiculos": 35,
           "ancho_estimado_m": null
         },
         {
           "id": "que_tol_3",
           "numero": 3,
-          "movimientos_permitidos": ["recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 180.0,
+          "capacidad_vehiculos": 35,
           "ancho_estimado_m": null
         }
       ],
       "notas": "Se fusiona con toluca_norte antes de entrar a zona H. Mediciones de campo pendientes para longitud de almacenamiento."
     },
-
     "toluca_norte": {
       "nombre_completo": "Av. Toluca norte (1 carril)",
       "descripcion": "1 carril que baja por Av. Toluca desde el norte y entra directo a zona H.",
@@ -53,16 +54,18 @@
         {
           "id": "tol_nor_1",
           "numero": 1,
-          "movimientos_permitidos": ["recto", "izquierda"],
-          "longitud_almacenamiento_m": 20.0,
-          "capacidad_vehiculos": 3,
+          "movimientos_permitidos": [
+            "recto",
+            "izquierda"
+          ],
+          "longitud_almacenamiento_m": 52.0,
+          "capacidad_vehiculos": 10,
           "ancho_estimado_m": 3.5,
           "notas": "20m medidos en campo (sección B). ~3 vehículos de capacidad."
         }
       ],
       "notas": "Carril único. Cola se acumula rápidamente en hora pico."
     },
-
     "lateral_norte": {
       "nombre_completo": "Lateral Norte (sentido ← oeste)",
       "descripcion": "4 carriles que vienen del este. La mayoría vira izquierda hacia zona H. Minoría sigue recto por Lateral Norte.",
@@ -71,39 +74,48 @@
         {
           "id": "lat_nor_1",
           "numero": 1,
-          "movimientos_permitidos": ["izquierda"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "izquierda"
+          ],
+          "longitud_almacenamiento_m": 160.0,
+          "capacidad_vehiculos": 31,
           "ancho_estimado_m": null
         },
         {
           "id": "lat_nor_2",
           "numero": 2,
-          "movimientos_permitidos": ["izquierda", "recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "izquierda",
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 160.0,
+          "capacidad_vehiculos": 31,
           "ancho_estimado_m": null
         },
         {
           "id": "lat_nor_3",
           "numero": 3,
-          "movimientos_permitidos": ["izquierda", "recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "izquierda",
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 160.0,
+          "capacidad_vehiculos": 31,
           "ancho_estimado_m": null
         },
         {
           "id": "lat_nor_4",
           "numero": 4,
-          "movimientos_permitidos": ["recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 160.0,
+          "capacidad_vehiculos": 31,
           "ancho_estimado_m": null
         }
       ],
       "notas": "Julián observó que muy pocos siguen recto. Mayoría vira izquierda a zona H."
     },
-
     "lateral_sur_oeste": {
       "nombre_completo": "Lateral Sur oeste — carriles rectos (sentido → este)",
       "descripcion": "2 carriles rectos que cruzan el Periférico hacia Lateral Sur este. Tienen semáforo. Los otros 2 carriles (retorno y vuelta continua) son flujos independientes sin semáforo.",
@@ -112,24 +124,27 @@
         {
           "id": "lat_sur_1",
           "numero": 1,
-          "movimientos_permitidos": ["recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 160.0,
+          "capacidad_vehiculos": 31,
           "ancho_estimado_m": null
         },
         {
           "id": "lat_sur_2",
           "numero": 2,
-          "movimientos_permitidos": ["recto"],
-          "longitud_almacenamiento_m": null,
-          "capacidad_vehiculos": null,
+          "movimientos_permitidos": [
+            "recto"
+          ],
+          "longitud_almacenamiento_m": 160.0,
+          "capacidad_vehiculos": 31,
           "ancho_estimado_m": null
         }
       ],
       "notas": "Julián contó 62 veh/ciclo verde en mediodía. Tasa de descarga 79 veh/60s."
     }
   },
-
   "zona_H": {
     "descripcion": "Zona de intersección central. 5 carriles físicos: 4 de flujo + 1 retorno.",
     "carriles_flujo": 4,
@@ -137,7 +152,8 @@
     "carriles_salida_lateral_sur_este": 2,
     "nota_bloqueo": "Durante fase_2 la zona H queda bloqueada: entran coches de lateral_norte pero no pueden salir porque lateral_sur_oeste cruza perpendicularmente."
   },
-
   "longitud_vehiculo_promedio_m": 4.1,
-  "separacion_detencion_m": 1.0
+  "separacion_detencion_m": 1.0,
+  "fecha_calibracion": "2026-05-20",
+  "_nota_longitudes": "Calibradas con OSM (19.340477, -99.203100, r=400m) + observación de campo"
 }

@@ -162,13 +162,26 @@ def reward_asimetrica(info: dict) -> float:
     colas = info["colas"]
 
     # ── 1. Penalización cuadrática cuello de botella ──
+    # Capacidades reales calibradas con OSM:
+    #   queretaro_toluca: 3 carriles × 35 veh = 105 veh
+    #   toluca_norte:     1 carril  × 10 veh = 10 veh
+    #   lateral_norte:    4 carriles × 31 veh = 124 veh
+    #   lateral_sur_oeste:2 carriles × 31 veh = 62 veh
+    CAP_QUE = 105.0
+    CAP_TOL = 10.0
+    CAP_LAT = 124.0
+    CAP_SUR = 62.0
+
     cola_que = sum(colas.get(f"que_tol_{i}", 0) for i in range(1, 4))
     cola_tol = colas.get("tol_nor_1", 0)
     cola_lat = sum(colas.get(f"lat_nor_{i}", 0) for i in range(1, 5))
     cola_sur = sum(colas.get(f"lat_sur_{i}", 0) for i in range(1, 3))
 
-    pen_cuello  = (cola_que ** 1.5) * 0.08 + (cola_tol ** 1.5) * 0.04
-    pen_lateral = (cola_lat + cola_sur) * 0.1
+    # Normalizar por capacidad antes de penalizar — así una cola de 50/105
+    # en queretaro y una de 50/62 en lateral_sur reciben penalizaciones
+    # proporcionales a qué tan saturadas están, no solo al número absoluto
+    pen_cuello  = ((cola_que / CAP_QUE) ** 1.5) * 200 +                   ((cola_tol / CAP_TOL) ** 1.5) * 50
+    pen_lateral = ((cola_lat / CAP_LAT) ** 1.2) * 80 +                   ((cola_sur / CAP_SUR) ** 1.2) * 40
 
     # ── 2. Premio por throughput ──────────────────────
     premio = info["salidos_step"] * 3.0
