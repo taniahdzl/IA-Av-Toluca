@@ -180,9 +180,9 @@ def reward_asimetrica(info: dict) -> float:
     f2 = sem.get("duracion_fase_2", 25)
     f3 = sem.get("duracion_fase_3", 22)
 
-    bonus_f1 = 40.0 * math.exp(-((f1 - 62) ** 2) / (2 * 8 ** 2))
-    bonus_f2 = 20.0 * math.exp(-((f2 - 25) ** 2) / (2 * 6 ** 2))
-    bonus_f3 = 20.0 * math.exp(-((f3 - 20) ** 2) / (2 * 5 ** 2))
+    bonus_f1 = 200.0 * math.exp(-((f1 - 62) ** 2) / (2 * 8 ** 2))
+    bonus_f2 = 80.0  * math.exp(-((f2 - 25) ** 2) / (2 * 6 ** 2))
+    bonus_f3 = 80.0  * math.exp(-((f3 - 20) ** 2) / (2 * 5 ** 2))
     bonus_ratio = bonus_f1 + bonus_f2 + bonus_f3
 
     # ── 4. Penalización bloqueo y saturación ─────────
