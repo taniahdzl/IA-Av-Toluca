@@ -14,7 +14,9 @@ from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
-SIM_SPEED   = int(os.getenv("VIZ_SIM_SPEED", 12))
+SIM_SPEED         = int(os.getenv("VIZ_SIM_SPEED", 2))
+EPISODE_DURATION  = int(os.getenv("SIM_EPISODE_DURATION", 3600))
+SIM_STEP_INTERVAL = int(os.getenv("SIM_STEP_INTERVAL", 30))
 MODEL_PATH  = os.getenv("RL_MODEL_PATH", "rl/models/sac_semaforo_v1.zip")
 STATIC_DIR  = Path(__file__).parent / "static"
 
@@ -37,6 +39,22 @@ class SimState:
 state = SimState()
 
 
+def _cargar_modelo(path: str) -> Optional[object]:
+    """Carga el modelo SAC desde disco. Devuelve None si no existe o falla."""
+    from stable_baselines3 import SAC
+    model_path = Path(path)
+    if not model_path.exists():
+        print(f"⚠  Modelo no encontrado en {model_path} — corriendo baseline")
+        return None
+    try:
+        modelo = SAC.load(str(model_path))
+        print(f"✓ Modelo SAC cargado: {model_path}")
+        return modelo
+    except Exception as e:
+        print(f"⚠  No se pudo cargar el modelo: {e}")
+        return None
+
+
 @app.on_event("startup")
 def startup():
     from sim.intersection import SimuladorCruce
@@ -46,17 +64,7 @@ def startup():
     state.renderer = Renderer(state.sim)
     state.sim.reset()
 
-    # Intentar cargar modelo SAC
-    model_path = Path(MODEL_PATH)
-    if model_path.exists():
-        try:
-            from stable_baselines3 import SAC
-            state.modelo_rl = SAC.load(str(model_path))
-            print(f"✓ Modelo SAC cargado: {model_path}")
-        except Exception as e:
-            print(f"⚠  No se pudo cargar el modelo: {e}")
-    else:
-        print(f"⚠  Modelo no encontrado en {model_path} — corriendo baseline")
+    state.modelo_rl = _cargar_modelo(MODEL_PATH)
 
     state.corriendo = True
     threading.Thread(target=_loop_simulacion, daemon=True).start()
@@ -66,18 +74,19 @@ def startup():
 def _loop_simulacion():
     from rl.environment import CruceEnv
     import numpy as np
-    import os
 
-    # Duración del demo: 30 min simulados = suficiente para ver cambios
-    # Sin reinicio automático para que la hora siga avanzando durante la presentación
-    DEMO_DURACION = 1800  # 30 minutos simulados
+    DEMO_DURACION = 1800  # punto en que se guarda resumen baseline (sin RL)
 
     env = None
-    obs = None
+    accion_real = None
+    pasos_en_episodio = 0
 
     if state.modelo_rl:
         env = CruceEnv(sim=state.sim)
         obs, _ = env.reset()
+        accion, _ = state.modelo_rl.predict(obs, deterministic=True)
+        accion_real = env._desnormalizar_accion(accion)
+        state.sim.semaforo.set_duraciones(*accion_real)
 
     while state.corriendo:
         if state.pausado:
@@ -86,20 +95,26 @@ def _loop_simulacion():
 
         with state.lock:
             for _ in range(state.speed):
-                if state.modelo_rl and env and obs is not None:
-                    try:
+                if state.modelo_rl and env:
+                    # Nueva decisión del agente cada SIM_STEP_INTERVAL pasos
+                    if pasos_en_episodio % SIM_STEP_INTERVAL == 0:
+                        obs = state.sim.get_estado()
                         accion, _ = state.modelo_rl.predict(obs, deterministic=True)
-                        obs_new, _, done, _, _ = env.step(accion)
-                        obs = obs_new
-                        if done:
-                            state.resumen_rl = state.sim.monitor.resumen()
-                            # Reiniciar pero mantener el modelo cargado
-                            obs, _ = env.reset()
-                    except Exception as e:
-                        state.sim.step()
+                        accion_real = env._desnormalizar_accion(accion)
+                        state.sim.semaforo.set_duraciones(*accion_real)
+
+                    state.sim.step()
+                    pasos_en_episodio += 1
+
+                    if state.sim.t >= EPISODE_DURATION:
+                        state.resumen_rl = state.sim.monitor.resumen()
+                        obs, _ = env.reset()   # también resetea state.sim
+                        pasos_en_episodio = 0
+                        accion, _ = state.modelo_rl.predict(obs, deterministic=True)
+                        accion_real = env._desnormalizar_accion(accion)
+                        state.sim.semaforo.set_duraciones(*accion_real)
                 else:
                     state.sim.step()
-                    # Solo guardar resumen, no reiniciar automáticamente
                     if state.sim.t == DEMO_DURACION:
                         state.resumen_base = state.sim.monitor.resumen()
 
@@ -152,6 +167,21 @@ def dashboard():
     if path.exists():
         return HTMLResponse(content=path.read_text())
     return HTMLResponse("<h2>Dashboard no encontrado</h2>")
+
+
+@app.post("/sim/reload-model")
+def reload_model(path: Optional[str] = None):
+    """Recarga el modelo SAC desde disco sin reiniciar el servidor."""
+    target = path or MODEL_PATH
+    nuevo = _cargar_modelo(target)
+    with state.lock:
+        state.modelo_rl = nuevo
+        state.sim.reset()
+    return JSONResponse({
+        "ok": True,
+        "modelo_cargado": nuevo is not None,
+        "path": target,
+    })
 
 
 @app.get("/health")
