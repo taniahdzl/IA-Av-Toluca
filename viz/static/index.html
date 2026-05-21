@@ -88,7 +88,85 @@
 </nav>
 <main>
   <div class="canvas-wrap">
-    <canvas id="cruce" width="520" height="520"></canvas>
+    <div style="position:relative;width:100%;max-width:520px;margin:0 auto;">
+      <!-- SVG base: geometría visual del cruce (solo decorativo) -->
+      <svg id="cruce-svg" viewBox="0 0 680 860" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;display:block;border-radius:10px;border:1px solid #2d3148;">
+        <rect width="680" height="860" fill="#1a1d27"/>
+        <!-- Lateral Norte (arriba) -->
+        <rect x="0" y="130" width="680" height="160" fill="#2d3148"/>
+        <!-- Lateral Sur (abajo) -->
+        <rect x="0" y="530" width="680" height="160" fill="#2d3148"/>
+        <!-- Zona H central -->
+        <polygon points="300,126 420,126 432,290 222,290" fill="#2d3148"/>
+        <rect x="222" y="290" width="210" height="240" fill="#3a3d52"/>
+        <polygon points="222,530 432,530 420,690 310,690" fill="#2d3148"/>
+        <!-- Av. Querétaro/Toluca norte (diagonal + vertical) -->
+        <path d="M 0,0 L 170,0 Q 300,0 300,130 L 420,130 Q 420,0 170,0 Z" fill="#2d3148"/>
+        <rect x="300" y="0" width="120" height="130" fill="#2d3148"/>
+        <!-- Av. Toluca sur -->
+        <rect x="310" y="690" width="110" height="170" fill="#2d3148"/>
+        <path d="M 0,860 L 210,860 Q 310,860 310,690 L 420,690 Q 420,860 210,860 Z" fill="#2d3148"/>
+        <!-- Divisorias Lateral Norte -->
+        <line x1="0" y1="158" x2="222" y2="158" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="0" y1="186" x2="222" y2="186" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="0" y1="216" x2="222" y2="216" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="0" y1="248" x2="222" y2="248" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="0" y1="270" x2="222" y2="270" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="432" y1="158" x2="680" y2="158" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="432" y1="186" x2="680" y2="186" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="432" y1="216" x2="680" y2="216" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="432" y1="248" x2="680" y2="248" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="432" y1="270" x2="680" y2="270" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <!-- Divisorias Lateral Sur -->
+        <line x1="0" y1="560" x2="222" y2="560" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="0" y1="600" x2="222" y2="600" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="0" y1="638" x2="222" y2="638" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="0" y1="666" x2="222" y2="666" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="10 6"/>
+        <line x1="432" y1="558" x2="680" y2="558" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="432" y1="590" x2="680" y2="590" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="432" y1="628" x2="680" y2="628" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="432" y1="660" x2="680" y2="660" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <!-- Divisorias Av. Querétaro/Toluca norte -->
+        <line x1="322" y1="0" x2="322" y2="126" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="344" y1="0" x2="344" y2="126" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="366" y1="0" x2="366" y2="126" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="388" y1="0" x2="388" y2="126" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <!-- Divisorias diagonales Querétaro -->
+        <path d="M 55,0 Q 220,0 296,82"  fill="none" stroke="#3a3d52" stroke-width="1" stroke-dasharray="12 7"/>
+        <path d="M 95,0 Q 248,0 300,62"  fill="none" stroke="#4a5568" stroke-width="1.5" stroke-dasharray="12 7"/>
+        <path d="M 135,0 Q 272,0 306,42" fill="none" stroke="#3a3d52" stroke-width="1" stroke-dasharray="12 7"/>
+        <!-- Divisorias Av. Toluca sur -->
+        <line x1="334" y1="694" x2="334" y2="860" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="362" y1="694" x2="362" y2="860" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="388" y1="694" x2="388" y2="860" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <!-- Divisorias zona H vertical -->
+        <line x1="244" y1="294" x2="244" y2="526" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="266" y1="294" x2="266" y2="526" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="290" y1="294" x2="290" y2="526" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="316" y1="294" x2="316" y2="526" stroke="#4a5568" stroke-width="1.5"/>
+        <line x1="344" y1="294" x2="344" y2="526" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="372" y1="294" x2="372" y2="526" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <line x1="400" y1="294" x2="400" y2="526" stroke="#3a3d52" stroke-width="1" stroke-dasharray="14 8"/>
+        <!-- Retorno zona H -->
+        <rect x="222" y="290" width="50" height="240" fill="#252838" opacity="0.8"/>
+        <path d="M 222,545 Q 188,545 188,480 Q 188,370 222,310" fill="none" stroke="#4a5568" stroke-width="1.5" stroke-dasharray="7 4"/>
+        <!-- Etiquetas estáticas -->
+        <text x="340" y="415" text-anchor="middle" fill="#64748b" font-size="13" font-family="sans-serif">Zona H</text>
+        <text x="111" y="210" text-anchor="middle" fill="#64748b" font-size="11" font-family="sans-serif">Lateral Norte ←</text>
+        <text x="111" y="610" text-anchor="middle" fill="#64748b" font-size="11" font-family="sans-serif">← Lateral Sur</text>
+        <text x="560" y="610" text-anchor="middle" fill="#64748b" font-size="11" font-family="sans-serif">Lateral Sur →</text>
+        <text x="360" y="65" text-anchor="middle" fill="#64748b" font-size="11" font-family="sans-serif">Av. Querétaro/Toluca ↓</text>
+        <!-- Semáforos (se actualizan desde JS) -->
+        <circle id="sem-que"     cx="222" cy="122" r="7" fill="#374151"/>
+        <circle id="sem-lat-nor" cx="436" cy="122" r="7" fill="#374151"/>
+        <circle id="sem-lat-sur" cx="222" cy="534" r="7" fill="#374151"/>
+        <circle id="sem-lat-sur2" cx="436" cy="534" r="7" fill="#374151"/>
+      </svg>
+      <!-- Canvas superpuesto para barras de cola -->
+      <canvas id="cruce" width="680" height="860"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></canvas>
+    </div>
     <div class="sim-time" id="sim-time">t = 0 s</div>
   </div>
 
@@ -171,17 +249,18 @@
 </main>
 
 <script>
-// ── Canvas setup ─────────────────────────────────────────────
+// ── Canvas setup (coordenadas = viewBox SVG 680×860) ─────────
 const canvas = document.getElementById("cruce");
 const ctx = canvas.getContext("2d");
-const W = canvas.width, H = canvas.height;
+const W = 680, H = 860;
 
-// Zona H centrada
-const ZX1 = 180, ZX2 = 360, ZY1 = 180, ZY2 = 360;
+// Zona H — coordenadas exactas del SVG
+const ZX1 = 222, ZX2 = 432, ZY1 = 290, ZY2 = 530;
 const ZCX = (ZX1+ZX2)/2, ZCY = (ZY1+ZY2)/2;
-// Laterales
-const LAT_N_Y1 = 80,  LAT_N_Y2 = 180;
-const LAT_S_Y1 = 360, LAT_S_Y2 = 460;
+// Lateral Norte y=130..290
+const LAT_N_Y1 = 130, LAT_N_Y2 = 290;
+// Lateral Sur y=530..690
+const LAT_S_Y1 = 530, LAT_S_Y2 = 690;
 
 const LABELS = {
   queretaro_toluca:  "Querétaro/Toluca (4c fusionados)",
@@ -193,134 +272,90 @@ function barColor(pct) {
   return pct >= 0.9 ? "#ef4444" : pct >= 0.6 ? "#f59e0b" : "#3b82f6";
 }
 
+function semColor(c) {
+  return c === "green" ? "#4ade80" : c === "yellow" ? "#facc15" : "#374151";
+}
+
+function actualizarSemSVG(V) {
+  // Actualizar colores de los círculos SVG
+  const map = {
+    "sem-que":      V["queretaro_toluca"]?.color_semaforo,
+    "sem-lat-nor":  V["lateral_norte"]?.color_semaforo,
+    "sem-lat-sur":  V["lateral_sur_oeste"]?.color_semaforo,
+    "sem-lat-sur2": V["lateral_sur_oeste"]?.color_semaforo,
+  };
+  for (const [id, color] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.setAttribute("fill", semColor(color));
+      if (color === "green") el.setAttribute("filter", "drop-shadow(0 0 4px #4ade80)");
+      else el.removeAttribute("filter");
+    }
+  }
+}
+
 function dibujarCruce(f) {
+  // El SVG ya dibuja el fondo — canvas solo dibuja barras de cola y zona H bloqueada
   ctx.clearRect(0, 0, W, H);
 
-  // Fondo
-  ctx.fillStyle = "#1a1d27";
-  ctx.fillRect(0, 0, W, H);
-
-  // ── Asfalto ──────────────────────────────────────────────
-
-  // Laterales Norte y Sur (horizontales)
-  ctx.fillStyle = "#2d3148";
-  ctx.fillRect(0, LAT_N_Y1, W, LAT_N_Y2 - LAT_N_Y1);
-  ctx.fillRect(0, LAT_S_Y1, W, LAT_S_Y2 - LAT_S_Y1);
-
-  // Av. Querétaro/Toluca (vertical, desde arriba)
-  ctx.fillRect(ZX1, 0, ZX2 - ZX1, ZY1);
-  // Av. Toluca (sale hacia abajo)
-  ctx.fillRect(ZX1, ZY2, ZX2 - ZX1, H - ZY2);
-
-  // Zona H (más clara)
-  ctx.fillStyle = "#3a3d52";
-  ctx.fillRect(ZX1, ZY1, ZX2 - ZX1, ZY2 - ZY1);
-
-  // Líneas centrales
-  ctx.setLineDash([8,6]);
-  ctx.strokeStyle = "#4a5568";
-  ctx.lineWidth = 1;
-  // Lateral Norte
-  ctx.beginPath(); ctx.moveTo(0, (LAT_N_Y1+LAT_N_Y2)/2);
-  ctx.lineTo(ZX1, (LAT_N_Y1+LAT_N_Y2)/2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ZX2, (LAT_N_Y1+LAT_N_Y2)/2);
-  ctx.lineTo(W, (LAT_N_Y1+LAT_N_Y2)/2); ctx.stroke();
-  // Lateral Sur
-  ctx.beginPath(); ctx.moveTo(0, (LAT_S_Y1+LAT_S_Y2)/2);
-  ctx.lineTo(ZX1, (LAT_S_Y1+LAT_S_Y2)/2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ZX2, (LAT_S_Y1+LAT_S_Y2)/2);
-  ctx.lineTo(W, (LAT_S_Y1+LAT_S_Y2)/2); ctx.stroke();
-  // Av. Toluca vertical
-  ctx.beginPath(); ctx.moveTo((ZX1+ZX2)/2, 0);
-  ctx.lineTo((ZX1+ZX2)/2, ZY1); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo((ZX1+ZX2)/2, ZY2);
-  ctx.lineTo((ZX1+ZX2)/2, H); ctx.stroke();
-  ctx.setLineDash([]);
-
-  if (!f || !f.vialidades) {
-    ctx.fillStyle = "#94a3b8"; ctx.font = "11px sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("Zona H", ZCX, ZCY);
-    return;
-  }
-
+  if (!f || !f.vialidades) return;
   const V = f.vialidades;
 
-  // ── Colas ────────────────────────────────────────────────
-
-  // queretaro_toluca: barra vertical desde arriba hacia zona H
-  if (V["queretaro_toluca"]) {
-    const vd = V["queretaro_toluca"];
-    const maxLen = ZY1 - 10;
-    const len = Math.max(vd.pct_ocupacion * maxLen, 8); // mínimo 8px para visibilidad
-    const bw = ZX2 - ZX1 - 8;
-    ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
-    ctx.fillRect(ZX1 + 4, ZY1 - len, bw, len);
-    // Número encima de la barra
-    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-    ctx.fillText(vd.cola, ZCX, ZY1 - len - 4);
-  }
-
-  // lateral_norte: viene del ESTE (derecha), cola crece hacia la derecha desde zona H
-  if (V["lateral_norte"]) {
-    const vd = V["lateral_norte"];
-    const maxLen = W - ZX2 - 10;
-    const len = Math.max(vd.pct_ocupacion * maxLen, 8);
-    const bh = LAT_N_Y2 - LAT_N_Y1 - 8;
-    ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
-    ctx.fillRect(ZX2, LAT_N_Y1 + 4, len, bh);
-    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "left"; ctx.textBaseline = "middle";
-    ctx.fillText(vd.cola, ZX2 + len + 6, (LAT_N_Y1+LAT_N_Y2)/2);
-  }
-
-  // lateral_sur_oeste: barra horizontal desde izquierda hacia zona H
-  if (V["lateral_sur_oeste"]) {
-    const vd = V["lateral_sur_oeste"];
-    const maxLen = ZX1 - 10;
-    const len = Math.max(vd.pct_ocupacion * maxLen, 8);
-    const bh = LAT_S_Y2 - LAT_S_Y1 - 8;
-    ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
-    ctx.fillRect(ZX1 - len, LAT_S_Y1 + 4, len, bh);
-    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "right"; ctx.textBaseline = "middle";
-    ctx.fillText(vd.cola, ZX1 - len - 6, (LAT_S_Y1+LAT_S_Y2)/2);
-  }
+  // Actualizar semáforos SVG
+  actualizarSemSVG(V);
 
   // ── Zona H bloqueada ──────────────────────────────────────
   if (f.semaforo?.zona_H_bloqueada) {
-    ctx.fillStyle = "rgba(239,68,68,0.15)";
+    ctx.fillStyle = "rgba(239,68,68,0.18)";
     ctx.fillRect(ZX1, ZY1, ZX2-ZX1, ZY2-ZY1);
-    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
-    ctx.setLineDash([5,4]);
+    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 2;
+    ctx.setLineDash([6,4]);
     ctx.strokeRect(ZX1, ZY1, ZX2-ZX1, ZY2-ZY1);
     ctx.setLineDash([]);
   }
 
-  // ── Semáforos (círculos en esquinas de zona H) ────────────
-  const semCol = (v) => {
-    const c = V[v]?.color_semaforo;
-    return c === "green" ? "#4ade80" : c === "yellow" ? "#facc15" : "#374151";
-  };
-  [[ZX1-12, ZY1-12, "queretaro_toluca"],
-   [ZX2+2,  ZY1-12, "lateral_norte"],
-   [ZX1-12, ZY2+2,  "lateral_sur_oeste"],
-   [ZX2+2,  ZY2+2,  "lateral_sur_oeste"]].forEach(([x,y,v]) => {
-    ctx.beginPath(); ctx.arc(x+6, y+6, 6, 0, Math.PI*2);
-    ctx.fillStyle = semCol(v); ctx.fill();
-  });
+  // ── Colas ────────────────────────────────────────────────
 
-  // ── Etiquetas ─────────────────────────────────────────────
-  ctx.fillStyle = "#64748b"; ctx.font = "10px sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("Zona H", ZCX, ZCY);
-  ctx.fillText("Av. Querétaro/Toluca ↓", ZCX, 40);
-  ctx.fillStyle = "#94a3b8";
-  ctx.textAlign = "right";
-  ctx.fillText("← Lat Norte", ZX1 - 4, (LAT_N_Y1+LAT_N_Y2)/2);
-  ctx.textAlign = "left";
-  ctx.fillText("Lat Sur →", ZX2 + 4, (LAT_S_Y1+LAT_S_Y2)/2);
+  // queretaro_toluca: barra vertical, crece desde ZY1 hacia arriba
+  if (V["queretaro_toluca"]) {
+    const vd = V["queretaro_toluca"];
+    const maxLen = ZY1 - LAT_N_Y2 - 10;
+    const len = Math.max(vd.pct_ocupacion * maxLen, 10);
+    const bw = ZX2 - ZX1 - 16;
+    ctx.fillStyle = barColor(vd.pct_ocupacion) + "dd";
+    ctx.fillRect(ZX1 + 8, ZY1 - len, bw, len);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText(vd.cola, ZCX, ZY1 - len - 6);
+  }
+
+  // lateral_norte: barra crece hacia la DERECHA desde ZX2
+  if (V["lateral_norte"]) {
+    const vd = V["lateral_norte"];
+    const maxLen = W - ZX2 - 10;
+    const len = Math.max(vd.pct_ocupacion * maxLen, 10);
+    const cy = (LAT_N_Y1 + LAT_N_Y2) / 2;
+    const bh = 120;
+    ctx.fillStyle = barColor(vd.pct_ocupacion) + "dd";
+    ctx.fillRect(ZX2, cy - bh/2, len, bh);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(vd.cola, ZX2 + len + 8, cy);
+  }
+
+  // lateral_sur_oeste: barra crece hacia la IZQUIERDA desde ZX1
+  if (V["lateral_sur_oeste"]) {
+    const vd = V["lateral_sur_oeste"];
+    const maxLen = ZX1 - 10;
+    const len = Math.max(vd.pct_ocupacion * maxLen, 10);
+    const cy = (LAT_S_Y1 + LAT_S_Y2) / 2;
+    const bh = 80;
+    ctx.fillStyle = barColor(vd.pct_ocupacion) + "dd";
+    ctx.fillRect(ZX1 - len, cy - bh/2, len, bh);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ctx.fillText(vd.cola, ZX1 - len - 8, cy);
+  }
 }
 
 function dibujarSemaforo(x, y, color) {
