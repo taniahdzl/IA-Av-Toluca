@@ -477,6 +477,7 @@
       <div class="ctrl">
         <button id="btn-pausa" onclick="togglePausa()">⏸ Pausar</button>
         <button id="btn-reset" onclick="resetSim()">↺ Reiniciar</button>
+        <button id="btn-reload" onclick="recargarModelo()">⬆ Recargar modelo</button>
       </div>
       <div class="speed-row" style="margin-top:8px">
         <span>Velocidad</span>
@@ -686,6 +687,20 @@ async function setSpeed(val) {
   const hint = segs >= 60 ? `~${Math.round(segs/60)} min / episodio` : `~${segs}s / episodio`;
   document.getElementById("sp-hint").textContent = hint;
   await fetch(`/sim/control?accion=velocidad&valor=${val}`, {method:"POST"});
+}
+
+async function recargarModelo() {
+  const btn = document.getElementById("btn-reload");
+  btn.textContent = "Cargando...";
+  btn.disabled = true;
+  try {
+    const res = await fetch("/sim/reload-model", {method:"POST"});
+    const data = await res.json();
+    btn.textContent = data.modelo_cargado ? "✓ Modelo recargado" : "⚠ Sin modelo";
+    setTimeout(() => { btn.textContent = "⬆ Recargar modelo"; btn.disabled = false; }, 3000);
+  } catch {
+    btn.textContent = "⚠ Error"; btn.disabled = false;
+  }
 }
 
 setInterval(fetchFrame, 120);

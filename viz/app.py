@@ -14,10 +14,10 @@ from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
-SIM_SPEED        = int(os.getenv("VIZ_SIM_SPEED", 2))
-EPISODE_DURATION = int(os.getenv("SIM_EPISODE_DURATION", 3600))
+SIM_SPEED         = int(os.getenv("VIZ_SIM_SPEED", 2))
+EPISODE_DURATION  = int(os.getenv("SIM_EPISODE_DURATION", 3600))
 SIM_STEP_INTERVAL = int(os.getenv("SIM_STEP_INTERVAL", 30))
-MODEL_PATH  = os.getenv("RL_MODEL_PATH", "rl/models/sac_semaforo_v1.zip")
+MODEL_PATH  = os.getenv("RL_MODEL_PATH", "rl/models/best_model.zip")
 STATIC_DIR  = Path(__file__).parent / "static"
 
 app = FastAPI(title="Cruce Av. Toluca × Periférico — Demo RL")
@@ -39,6 +39,22 @@ class SimState:
 state = SimState()
 
 
+def _cargar_modelo(path: str) -> Optional[object]:
+    """Carga el modelo PPO desde disco. Devuelve None si no existe o falla."""
+    from stable_baselines3 import PPO
+    model_path = Path(path)
+    if not model_path.exists():
+        print(f"⚠  Modelo no encontrado en {model_path} — corriendo baseline")
+        return None
+    try:
+        modelo = PPO.load(str(model_path))
+        print(f"✓ Modelo PPO cargado: {model_path}")
+        return modelo
+    except Exception as e:
+        print(f"⚠  No se pudo cargar el modelo: {e}")
+        return None
+
+
 @app.on_event("startup")
 def startup():
     from sim.intersection import SimuladorCruce
@@ -48,17 +64,7 @@ def startup():
     state.renderer = Renderer(state.sim)
     state.sim.reset()
 
-    # Intentar cargar modelo SAC
-    model_path = Path(MODEL_PATH)
-    if model_path.exists():
-        try:
-            from stable_baselines3 import SAC
-            state.modelo_rl = SAC.load(str(model_path))
-            print(f"✓ Modelo SAC cargado: {model_path}")
-        except Exception as e:
-            print(f"⚠  No se pudo cargar el modelo: {e}")
-    else:
-        print(f"⚠  Modelo no encontrado en {model_path} — corriendo baseline")
+    state.modelo_rl = _cargar_modelo(MODEL_PATH)
 
     state.corriendo = True
     threading.Thread(target=_loop_simulacion, daemon=True).start()
@@ -161,6 +167,21 @@ def dashboard():
     if path.exists():
         return HTMLResponse(content=path.read_text())
     return HTMLResponse("<h2>Dashboard no encontrado</h2>")
+
+
+@app.post("/sim/reload-model")
+def reload_model(path: Optional[str] = None):
+    """Recarga el modelo PPO desde disco sin reiniciar el servidor."""
+    target = path or MODEL_PATH
+    nuevo = _cargar_modelo(target)
+    with state.lock:
+        state.modelo_rl = nuevo
+        state.sim.reset()
+    return JSONResponse({
+        "ok": True,
+        "modelo_cargado": nuevo is not None,
+        "path": target,
+    })
 
 
 @app.get("/health")
