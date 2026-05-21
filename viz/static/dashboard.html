@@ -110,7 +110,7 @@
     <div class="icon">🔍</div>
     <div class="text">
       <h3>Hallazgo principal: el ciclo semafórico actual es demasiado corto</h3>
-      <p>El semáforo actual tiene un ciclo de <strong>111 segundos</strong> con un reparto casi igual entre 8 carriles de entrada y 2 carriles de salida. El agente SAC descubrió que el ciclo óptimo es de <strong>~207 segundos</strong> — casi el doble — con mucho más tiempo para que la Zona H se vacíe antes de que entren nuevos vehículos de Lateral Norte.</p>
+      <p>El semáforo actual tiene un ciclo de <strong>111 segundos</strong> con un reparto casi igual entre 8 carriles de entrada y 2 carriles de salida. El agente SAC descubrió que el ciclo óptimo es de <strong>~187 segundos</strong> — casi el doble — con mucho más tiempo para que la Zona H se vacíe antes de que entren nuevos vehículos de Lateral Norte.</p>
     </div>
   </div>
 
@@ -147,11 +147,11 @@
         </tr>
         <tr>
           <td><span class="badge green">SAC</span> Agente RL entrenado</td>
-          <td>88s / 72s / 14s (prom)</td>
-          <td>~207s</td>
-          <td class="mejor">271.2 veh</td>
-          <td class="mejor">141.1s</td>
-          <td class="mejor">5,017</td>
+          <td>83s / 80s / 14s (prom)</td>
+          <td>~187s</td>
+          <td class="mejor">277.6 veh</td>
+          <td class="mejor">121.8s</td>
+          <td class="mejor">5,032</td>
         </tr>
       </tbody>
     </table>
@@ -177,9 +177,9 @@
           </div>
         </div>
         <div class="bar-item">
-          <div class="bar-label"><span>Agente SAC</span><span>271.2</span></div>
+          <div class="bar-label"><span>Agente SAC</span><span>277.6</span></div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:63.7%;background:#4ade80;">271.2 veh</div>
+            <div class="bar-fill" style="width:65.2%;background:#4ade80;">277.6 veh</div>
           </div>
         </div>
       </div>
@@ -195,15 +195,15 @@
           </div>
         </div>
         <div class="bar-item">
-          <div class="bar-label"><span>Óptimo teórico</span><span>205s</span></div>
+          <div class="bar-label"><span>Óptimo teórico</span><span>204.7s</span></div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:84.4%;background:#f59e0b;">205s</div>
+            <div class="bar-fill" style="width:84.2%;background:#f59e0b;">204.7s</div>
           </div>
         </div>
         <div class="bar-item">
-          <div class="bar-label"><span>Agente SAC</span><span>141s</span></div>
+          <div class="bar-label"><span>Agente SAC</span><span>121.8s</span></div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:58.0%;background:#4ade80;">141s</div>
+            <div class="bar-fill" style="width:50.1%;background:#4ade80;">121.8s</div>
           </div>
         </div>
       </div>
@@ -215,19 +215,19 @@
         <div class="bar-item">
           <div class="bar-label"><span>Semáforo campo</span><span>4,743</span></div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:94.5%;background:#ef4444;">4,743</div>
+            <div class="bar-fill" style="width:94.3%;background:#ef4444;">4,743</div>
           </div>
         </div>
         <div class="bar-item">
           <div class="bar-label"><span>Óptimo teórico</span><span>4,988</span></div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:99.4%;background:#f59e0b;">4,988</div>
+            <div class="bar-fill" style="width:99.1%;background:#f59e0b;">4,988</div>
           </div>
         </div>
         <div class="bar-item">
-          <div class="bar-label"><span>Agente SAC</span><span>5,017</span></div>
+          <div class="bar-label"><span>Agente SAC</span><span>5,032</span></div>
           <div class="bar-track">
-            <div class="bar-fill" style="width:100%;background:#4ade80;">5,017</div>
+            <div class="bar-fill" style="width:100%;background:#4ade80;">5,032</div>
           </div>
         </div>
       </div>
@@ -274,16 +274,16 @@
         <div class="fase-dot" style="background:#4ade80;"></div>
         <div class="fase-info">
           <div class="nombre">Fase 1 — Av. Querétaro/Toluca (4 carriles)</div>
-          <div class="valor" style="color:#4ade80;">88s <span style="font-size:13px;color:#64748b;">↑ +37s</span></div>
-          <div class="fase-bar"><div class="fase-bar-fill" style="width:51.5%;background:#4ade80;"></div></div>
+          <div class="valor" style="color:#4ade80;">83s <span style="font-size:13px;color:#64748b;">↑ +32s</span></div>
+          <div class="fase-bar"><div class="fase-bar-fill" style="width:44.4%;background:#4ade80;"></div></div>
         </div>
       </div>
       <div class="fase-row">
         <div class="fase-dot" style="background:#3b82f6;"></div>
         <div class="fase-info">
           <div class="nombre">Fase 2 — Lateral Norte (4 carriles)</div>
-          <div class="valor" style="color:#3b82f6;">72s <span style="font-size:13px;color:#64748b;">↑ +42s</span></div>
-          <div class="fase-bar"><div class="fase-bar-fill" style="width:42.1%;background:#3b82f6;"></div></div>
+          <div class="valor" style="color:#3b82f6;">80s <span style="font-size:13px;color:#64748b;">↑ +50s</span></div>
+          <div class="fase-bar"><div class="fase-bar-fill" style="width:42.8%;background:#3b82f6;"></div></div>
         </div>
       </div>
       <div class="fase-row">
@@ -291,10 +291,10 @@
         <div class="fase-info">
           <div class="nombre">Fase 3 — Lateral Sur oeste (2 carriles)</div>
           <div class="valor" style="color:#a78bfa;">14s <span style="font-size:13px;color:#64748b;">↓ −7s</span></div>
-          <div class="fase-bar"><div class="fase-bar-fill" style="width:8.2%;background:#a78bfa;"></div></div>
+          <div class="fase-bar"><div class="fase-bar-fill" style="width:7.5%;background:#a78bfa;"></div></div>
         </div>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:#64748b;">Ciclo total: ~207s — el agente duplicó el ciclo</div>
+      <div style="margin-top:12px;font-size:12px;color:#64748b;">Ciclo total: ~187s — el agente casi duplicó el ciclo</div>
     </div>
 
   </div>
@@ -303,21 +303,21 @@
   <h2>Conclusiones</h2>
   <div class="conclusiones">
     <div class="conclusion-card">
-      <div class="num">−36%</div>
+      <div class="num">−35%</div>
       <div class="desc">Reducción en cola promedio<br>
-        <strong style="color:#e2e8f0;">425 → 271 vehículos</strong><br>
+        <strong style="color:#e2e8f0;">425 → 277 vehículos</strong><br>
         Solo ajustando tiempos del semáforo, sin obra física.</div>
     </div>
     <div class="conclusion-card">
-      <div class="num">−42%</div>
+      <div class="num">−50%</div>
       <div class="desc">Reducción en tiempo de espera<br>
-        <strong style="color:#e2e8f0;">243s → 141s por vehículo</strong><br>
-        Los conductores esperan ~1.7 minutos menos en promedio.</div>
+        <strong style="color:#e2e8f0;">243s → 122s por vehículo</strong><br>
+        Los conductores esperan ~2 minutos menos en promedio.</div>
     </div>
     <div class="conclusion-card warn">
-      <div class="num">2×</div>
-      <div class="desc">El ciclo óptimo es el doble del actual<br>
-        <strong style="color:#e2e8f0;">111s → 207s</strong><br>
+      <div class="num">~2×</div>
+      <div class="desc">El ciclo óptimo es casi el doble del actual<br>
+        <strong style="color:#e2e8f0;">111s → 187s</strong><br>
         El semáforo actual cambia demasiado rápido para el volumen real del cruce.</div>
     </div>
     <div class="conclusion-card info">
