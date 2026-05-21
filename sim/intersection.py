@@ -44,7 +44,7 @@ FASE_VERDE: Dict[str, List[str]] = {
 FLUJOS_DEFAULT: Dict[str, List[float]] = {
     "queretaro_toluca":  [520,  2855, 2887, 2573, 1007],
     "lateral_norte":     [480,  2390, 2400, 2135,  840],
-    "lateral_sur_oeste": [400,  2000, 2011, 1790,  700],
+    "lateral_sur_oeste": [179,   894,  899,  800,  313],  # escalado ×(21/47): verde propio 21s vs 47s simultáneo medido en campo
 }
 
 # Tasa de descarga (veh/segundo de verde)

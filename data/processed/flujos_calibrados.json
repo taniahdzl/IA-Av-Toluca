@@ -57,11 +57,12 @@
     "lateral_sur_oeste": {
       "_conteo_campo_veh_ciclo": 62,
       "_nota": "Julián contó Periférico Sur. Solo los 2 carriles rectos con semáforo.",
-      "0": 400,
-      "1": 2000,
-      "2": 2011,
-      "3": 1790,
-      "4": 700
+      "_nota_ajuste_flujo": "Flujos escalados ×(21/47) respecto al conteo de campo. El conteo original se midió con verde simultáneo de 47s (junto a lateral_norte); el modelo usa fase propia de 21s, por lo que el flujo coherente con esa ventana es proporcional.",
+      "0": 179,
+      "1": 894,
+      "2": 899,
+      "3": 800,
+      "4": 313
     }
   },
 
