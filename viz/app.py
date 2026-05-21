@@ -17,7 +17,7 @@ load_dotenv()
 SIM_SPEED         = int(os.getenv("VIZ_SIM_SPEED", 2))
 EPISODE_DURATION  = int(os.getenv("SIM_EPISODE_DURATION", 3600))
 SIM_STEP_INTERVAL = int(os.getenv("SIM_STEP_INTERVAL", 30))
-MODEL_PATH  = os.getenv("RL_MODEL_PATH", "rl/models/best_model.zip")
+MODEL_PATH  = os.getenv("RL_MODEL_PATH", "rl/models/sac_semaforo_v1.zip")
 STATIC_DIR  = Path(__file__).parent / "static"
 
 app = FastAPI(title="Cruce Av. Toluca × Periférico — Demo RL")
@@ -40,15 +40,15 @@ state = SimState()
 
 
 def _cargar_modelo(path: str) -> Optional[object]:
-    """Carga el modelo PPO desde disco. Devuelve None si no existe o falla."""
-    from stable_baselines3 import PPO
+    """Carga el modelo SAC desde disco. Devuelve None si no existe o falla."""
+    from stable_baselines3 import SAC
     model_path = Path(path)
     if not model_path.exists():
         print(f"⚠  Modelo no encontrado en {model_path} — corriendo baseline")
         return None
     try:
-        modelo = PPO.load(str(model_path))
-        print(f"✓ Modelo PPO cargado: {model_path}")
+        modelo = SAC.load(str(model_path))
+        print(f"✓ Modelo SAC cargado: {model_path}")
         return modelo
     except Exception as e:
         print(f"⚠  No se pudo cargar el modelo: {e}")
@@ -171,7 +171,7 @@ def dashboard():
 
 @app.post("/sim/reload-model")
 def reload_model(path: Optional[str] = None):
-    """Recarga el modelo PPO desde disco sin reiniciar el servidor."""
+    """Recarga el modelo SAC desde disco sin reiniciar el servidor."""
     target = path or MODEL_PATH
     nuevo = _cargar_modelo(target)
     with state.lock:
