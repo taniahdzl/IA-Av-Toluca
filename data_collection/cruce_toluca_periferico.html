@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Bajo puente Av. Toluca / Periférico</title>
+  <style>
+    body { margin: 0; background: #f0ece0; display: flex; justify-content: center; padding: 20px; }
+    svg { max-width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+<svg width="680" height="860" viewBox="0 0 680 860" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- FONDO -->
+  <rect width="680" height="860" fill="#d0ccbf"/>
+
+  <!-- ══ CUERPO PERIFÉRICO (zona H intermedia) y=290..530 ══ -->
+  <rect x="0" y="290" width="680" height="240" fill="#a0998e"/>
+
+  <!-- ══ LATERAL NORTE y=130..290  (sentido ← oeste) ══ -->
+  <rect x="0" y="130" width="680" height="160" fill="#ede9df"/>
+  <line x1="0"   y1="130" x2="680" y2="130" stroke="#888" stroke-width="1.5"/>
+  <line x1="0"   y1="290" x2="222" y2="290" stroke="#888" stroke-width="1.5"/>
+  <line x1="432" y1="290" x2="680" y2="290" stroke="#888" stroke-width="1.5"/>
+  <!-- divisorias oeste -->
+  <line x1="0" y1="158" x2="222" y2="158" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="0" y1="186" x2="222" y2="186" stroke="#999" stroke-width="1.5"/>
+  <line x1="0" y1="216" x2="222" y2="216" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="0" y1="248" x2="222" y2="248" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="0" y1="270" x2="222" y2="270" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <!-- divisorias este -->
+  <line x1="432" y1="158" x2="680" y2="158" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="432" y1="186" x2="680" y2="186" stroke="#999" stroke-width="1.5"/>
+  <line x1="432" y1="216" x2="680" y2="216" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="432" y1="248" x2="680" y2="248" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="432" y1="270" x2="680" y2="270" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+
+  <!-- ══ LATERAL SUR y=530..690  (sentido → este) ══ -->
+  <rect x="0" y="530" width="680" height="160" fill="#ede9df"/>
+  <line x1="0"   y1="530" x2="222" y2="530" stroke="#888" stroke-width="1.5"/>
+  <line x1="432" y1="530" x2="680" y2="530" stroke="#888" stroke-width="1.5"/>
+  <line x1="0"   y1="690" x2="680" y2="690" stroke="#888" stroke-width="1.5"/>
+  <!-- divisorias oeste: 4 carriles asimétricos -->
+  <line x1="0" y1="560" x2="222" y2="560" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="10 6"/>
+  <!-- carril 1: retorno izq -->
+  <line x1="0" y1="600" x2="222" y2="600" stroke="#ccc"    stroke-width="1"   stroke-dasharray="14 8"/>
+  <!-- carriles 2-3: recto -->
+  <line x1="0" y1="638" x2="222" y2="638" stroke="#999"    stroke-width="1.5"/>
+  <line x1="0" y1="666" x2="222" y2="666" stroke="#2874A6" stroke-width="1.5" stroke-dasharray="10 6"/>
+  <!-- carril 4: vuelta continua -->
+  <!-- divisorias este -->
+  <line x1="432" y1="558" x2="680" y2="558" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="432" y1="590" x2="680" y2="590" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="432" y1="628" x2="680" y2="628" stroke="#999" stroke-width="1.5"/>
+  <line x1="432" y1="660" x2="680" y2="660" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+
+  <!-- ══ AV. TOLUCA / QUERÉTARO (vertical) ══ -->
+  <!-- segmento norte: 4 carriles -->
+  <rect x="300" y="0" width="120" height="130" fill="#ede9df"/>
+  <line x1="322" y1="0" x2="322" y2="126" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="344" y1="0" x2="344" y2="126" stroke="#999" stroke-width="1.5"/>
+  <line x1="366" y1="0" x2="366" y2="126" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="388" y1="0" x2="388" y2="126" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <!-- ensanche 4→5 carriles -->
+  <polygon points="300,126 420,126 432,290 222,290" fill="#ede9df"/>
+  <!-- zona H: 5 carriles -->
+  <rect x="222" y="290" width="210" height="240" fill="#ede9df"/>
+  <line x1="244" y1="294" x2="244" y2="526" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="266" y1="294" x2="266" y2="526" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="290" y1="294" x2="290" y2="526" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="316" y1="294" x2="316" y2="526" stroke="#999" stroke-width="1.5"/>
+  <line x1="344" y1="294" x2="344" y2="526" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="372" y1="294" x2="372" y2="526" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="400" y1="294" x2="400" y2="526" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <!-- reducción 5→3 carriles -->
+  <polygon points="222,530 432,530 420,690 310,690" fill="#ede9df"/>
+  <!-- segmento sur: 3 carriles -->
+  <rect x="310" y="690" width="110" height="170" fill="#ede9df"/>
+  <line x1="334" y1="694" x2="334" y2="860" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+  <line x1="362" y1="694" x2="362" y2="860" stroke="#999" stroke-width="1.5"/>
+  <line x1="388" y1="694" x2="388" y2="860" stroke="#ccc" stroke-width="1" stroke-dasharray="14 8"/>
+
+  <!-- ══ AV. QUERÉTARO DIAGONAL (NO → intersección norte) ══ -->
+  <path d="M 0,0 L 170,0 Q 300,0 300,130 L 420,130 Q 420,0 170,0 Z" fill="#ede9df"/>
+  <path d="M 55,0  Q 220,0 296,82" fill="none" stroke="#ccc" stroke-width="1"   stroke-dasharray="12 7"/>
+  <path d="M 95,0  Q 248,0 300,62" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="12 7"/>
+  <path d="M 135,0 Q 272,0 306,42" fill="none" stroke="#ccc" stroke-width="1"   stroke-dasharray="12 7"/>
+
+  <!-- ══ TLAXCALA DIAGONAL (SW → intersección sur) ══ -->
+  <path d="M 0,860 L 210,860 Q 310,860 310,690 L 420,690 Q 420,860 210,860 Z" fill="#ede9df"/>
+  <path d="M 40,860  Q 198,860 298,772" fill="none" stroke="#ccc" stroke-width="1"   stroke-dasharray="11 6"/>
+  <path d="M 80,860  Q 212,860 304,748" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="11 6"/>
+  <path d="M 120,860 Q 228,860 310,724" fill="none" stroke="#ccc" stroke-width="1"   stroke-dasharray="11 6"/>
+
+  <!-- ══ GUANAJUATO (acceso menor SW) ══ -->
+  <path d="M 0,690 L 0,780 L 180,750 L 200,690 Z" fill="#dedad0" opacity=".7"/>
+
+  <!-- ══ RETORNO (zona H, lado oeste) ══ -->
+  <!-- franja del retorno -->
+  <rect x="222" y="290" width="50" height="240" fill="#ece6da"/>
+  <line x1="238" y1="294" x2="238" y2="526" stroke="#e74c3c" stroke-width="1" stroke-dasharray="9 5"/>
+  <line x1="252" y1="294" x2="252" y2="526" stroke="#e74c3c" stroke-width="1" stroke-dasharray="9 5"/>
+  <!-- flecha principal retorno ↑ norte -->
+  <line x1="237" y1="510" x2="237" y2="308" stroke="#e74c3c" stroke-width="2.2" stroke-dasharray="8 4" marker-end="url(#arr)"/>
+  <!-- curva entrada desde lateral sur -->
+  <path d="M 222,545 Q 188,545 188,480 Q 188,370 222,310" fill="none" stroke="#e74c3c" stroke-width="2" stroke-dasharray="7 4"/>
+  <!-- curva salida hacia lateral norte ← oeste -->
+
+  -- por cambiar
+  <path d="M 222,290 Q 188,290 188,238 Q 188,184 222,172" fill="none" stroke="#e74c3c" stroke-width="2.2" stroke-dasharray="7 4"/> --en donde comienza la flecha del primer carril de la laeteral norte -> oeste 
+  <line x1="233" y1="172" x2="30" y2="172" stroke="#e74c3c" stroke-width="2.2" stroke-dasharray="7 4" marker-end="url(#arr)"/>
+ 
+  <!-- ══ CRUCES PEATONALES ══ -->
+  <!-- Norte (borde sup lateral norte / Av. Querétaro) -->
+  <rect x="302" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="315" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="328" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="341" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="354" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="367" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="380" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <rect x="393" y="112" width="9" height="16" fill="#555" opacity=".8"/>
+  <!-- Borde lateral norte / periférico (norte) -->
+  <rect x="224" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="237" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="250" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="263" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="294" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="308" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="322" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="336" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="350" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="364" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="378" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="392" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="406" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="420" y="274" width="8" height="14" fill="#555" opacity=".7"/>
+  <!-- Borde periférico / lateral sur (sur) -->
+  <rect x="224" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="237" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="250" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="263" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="294" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="308" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="322" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="336" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="350" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="364" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="378" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="392" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="406" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="420" y="534" width="8" height="14" fill="#555" opacity=".7"/>
+  <!-- Cruce oeste lateral norte -->
+  <rect x="206" y="134" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="148" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="162" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="176" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="190" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="204" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="218" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="232" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="248" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="264" width="14" height="8" fill="#555" opacity=".7"/>
+  <!-- Cruce este lateral norte -->
+  <rect x="432" y="134" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="148" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="162" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="176" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="190" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="204" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="218" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="232" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="248" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="264" width="14" height="8" fill="#555" opacity=".7"/>
+  <!-- Cruce oeste lateral sur -->
+  <rect x="206" y="534" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="548" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="562" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="576" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="590" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="604" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="618" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="632" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="648" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="206" y="664" width="14" height="8" fill="#555" opacity=".7"/>
+  <!-- Cruce este lateral sur -->
+  <rect x="432" y="534" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="548" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="562" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="576" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="590" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="604" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="618" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="632" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="648" width="14" height="8" fill="#555" opacity=".7"/>
+  <rect x="432" y="664" width="14" height="8" fill="#555" opacity=".7"/>
+  <!-- Cruce sur (borde lat sur / Av. Toluca) -->
+  <rect x="312" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="324" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="336" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="348" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="360" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="372" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="384" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="396" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+  <rect x="408" y="692" width="8" height="14" fill="#555" opacity=".7"/>
+
+  <!-- ══ SEMÁFOROS ══ -->
+  <circle cx="290" cy="130" r="9" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="420" cy="130" r="9" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="222" cy="290" r="8" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="432" cy="290" r="8" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="222" cy="530" r="8" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="432" cy="530" r="8" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="310" cy="690" r="9" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+  <circle cx="432" cy="690" r="9" fill="#1D9E75" stroke="#085041" stroke-width="1.5"/>
+
+  <!-- ══ FLECHAS DE SENTIDO ══ -->
+  <!-- Av. Toluca ↓ sur — 4 carriles norte -->
+  <line x1="322" y1="18" x2="322" y2="108" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="344" y1="18" x2="344" y2="108" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="366" y1="18" x2="366" y2="108" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="388" y1="18" x2="388" y2="108" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- zona H 5 carriles ↓ -->
+  <line x1="272" y1="310" x2="272" y2="516" stroke="#444" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="294" y1="310" x2="294" y2="516" stroke="#444" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="318" y1="310" x2="318" y2="516" stroke="#444" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="346" y1="310" x2="346" y2="516" stroke="#444" stroke-width="1.7" marker-end="url(#arr)"/>
+  <line x1="374" y1="310" x2="374" y2="516" stroke="#444" stroke-width="1.7" marker-end="url(#arr)"/>
+  <!-- Av. Toluca sur ↓ 3 carriles -->
+  <line x1="334" y1="710" x2="334" y2="844" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="362" y1="710" x2="362" y2="844" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="388" y1="710" x2="388" y2="844" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Lateral Norte ← oeste (lado oeste) -->
+  <line x1="200" y1="172" x2="30"  y2="172" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="200" y1="200" x2="30"  y2="200" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="200" y1="230" x2="30"  y2="230" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="200" y1="258" x2="30"  y2="258" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Lateral Norte ← oeste (lado este) -->
+  <line x1="660" y1="172" x2="432" y2="172" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="660" y1="200" x2="432" y2="200" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="660" y1="230" x2="432" y2="230" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="660" y1="258" x2="432" y2="258" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Lateral Sur → este (lado oeste): 4 carriles asimétricos -->
+  <line x1="30"  y1="545" x2="200" y2="545" stroke="#e74c3c" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- carril 1: retorno izq -->
+  <line x1="30"  y1="580" x2="200" y2="580" stroke="#222"    stroke-width="2" marker-end="url(#arr)"/>
+  <!-- carriles 2-3: recto -->
+  <line x1="30"  y1="618" x2="200" y2="618" stroke="#222"    stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="30"  y1="676" x2="200" y2="676" stroke="#2874A6" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- carril 4: vuelta cont. -->
+  <!-- Lateral Sur → este (lado este) -->
+  <line x1="432" y1="548" x2="660" y2="548" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="432" y1="580" x2="660" y2="580" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <!-- Querétaro diagonal ↓ -->
+  <path d="M 50,8  Q 160,8  260,82" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 92,4  Q 210,4  278,62" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+  <path d="M 134,2 Q 268,2  294,44" fill="none" stroke="#222" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- ══ ETIQUETAS (verde = nombre de calle) ══ -->
+  <rect x="432" y="10"  width="182" height="22" rx="5" fill="#3B6D11"/>
+  <text font-family="sans-serif" font-size="11" font-weight="600" x="523" y="25" text-anchor="middle" fill="#EAF3DE">Av. Querétaro → Av. Toluca</text>
+  <rect x="8"   y="148" width="140" height="22" rx="5" fill="#3B6D11"/>
+  <text font-family="sans-serif" font-size="11" font-weight="600" x="78"  y="163" text-anchor="middle" fill="#EAF3DE">Lateral Norte ← oeste</text>
+  <rect x="8"   y="558" width="140" height="22" rx="5" fill="#3B6D11"/>
+  <text font-family="sans-serif" font-size="11" font-weight="600" x="78"  y="573" text-anchor="middle" fill="#EAF3DE">Lateral Sur → este</text>
+  <rect x="8"   y="10"  width="116" height="22" rx="5" fill="#3B6D11"/>
+  <text font-family="sans-serif" font-size="11" font-weight="600" x="66"  y="25"  text-anchor="middle" fill="#EAF3DE">Av. Querétaro</text>
+  <rect x="8"   y="806" width="80"  height="22" rx="5" fill="#3B6D11"/>
+  <text font-family="sans-serif" font-size="11" font-weight="600" x="48"  y="821" text-anchor="middle" fill="#EAF3DE">Tlaxcala</text>
+
+  <!-- ══ ETIQUETAS DE CARRILES (morado) ══ -->
+  <rect x="432" y="36"  width="76" height="20" rx="4" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="11" font-weight="500" x="470" y="50"  text-anchor="middle" fill="#fff">4 carriles</text>
+  <rect x="432" y="394" width="76" height="20" rx="4" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="11" font-weight="500" x="470" y="408" text-anchor="middle" fill="#fff">5 carriles = 4 carriles + retorno</text>
+  <rect x="432" y="744" width="76" height="20" rx="4" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="11" font-weight="500" x="470" y="758" text-anchor="middle" fill="#fff">3 carriles</text>
+  <rect x="562" y="148" width="76" height="20" rx="4" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="11" font-weight="500" x="600" y="162" text-anchor="middle" fill="#fff">4 carriles</text>
+  <rect x="562" y="558" width="76" height="20" rx="4" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="11" font-weight="500" x="600" y="572" text-anchor="middle" fill="#fff">2 carriles</text>
+
+  <!-- Distribución carriles lateral sur oeste -->
+  <rect x="8" y="530" width="116" height="16" rx="3" fill="#e74c3c"/>
+  <text font-family="sans-serif" font-size="10" font-weight="500" x="66" y="542" text-anchor="middle" fill="#fff">1 carril ↰ retorno</text>
+  <rect x="8" y="596" width="116" height="16" rx="3" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="10" font-weight="500" x="66" y="608" text-anchor="middle" fill="#fff">2 carriles recto</text>
+  <rect x="8" y="660" width="116" height="16" rx="3" fill="#2874A6"/>
+  <text font-family="sans-serif" font-size="10" font-weight="500" x="66" y="672" text-anchor="middle" fill="#fff">1 carril ↱ vuelta cont.</text>
+
+  <!-- Periférico -->
+  <rect x="8"   y="394" width="90" height="20" rx="4" fill="rgba(0,0,0,.5)"/>
+  <text font-family="sans-serif" font-size="11" x="53" y="408" text-anchor="middle" fill="#fff">Periférico</text>
+  <rect x="580" y="394" width="90" height="20" rx="4" fill="rgba(0,0,0,.5)"/>
+  <text font-family="sans-serif" font-size="11" x="625" y="408" text-anchor="middle" fill="#fff">Periférico</text>
+
+  <!-- Retorno label -->
+  <rect x="120" y="394" width="96" height="20" rx="4" fill="#e74c3c"/>
+  <text font-family="sans-serif" font-size="10" font-weight="500" x="168" y="408" text-anchor="middle" fill="#fff">↑ Retorno zona H</text>
+
+  <!-- Vuelta continua label -->
+  <rect x="43" y="726" width="192" height="20" rx="4" fill="#2874A6"/>
+  <text font-family="sans-serif" font-size="10" font-weight="500" x="139" y="740" text-anchor="middle" fill="#fff">Vuelta cont. → Av. Toluca sur</text>
+
+  <!-- ══ LEYENDA ══ -->
+  <rect x="8" y="834" width="360" height="22" rx="6" fill="rgba(0,0,0,.5)"/>
+  <circle cx="24" cy="845" r="5" fill="#1D9E75"/>
+  <text font-family="sans-serif" font-size="10" x="34" y="849" fill="#fff">Semáforo</text>
+  <line x1="108" y1="845" x2="132" y2="845" stroke="#e74c3c" stroke-width="2" stroke-dasharray="5 3"/>
+  <text font-family="sans-serif" font-size="10" x="138" y="849" fill="#fff">Retorno ←</text>
+  <line x1="210" y1="845" x2="234" y2="845" stroke="#2874A6" stroke-width="2"/>
+  <text font-family="sans-serif" font-size="10" x="240" y="849" fill="#fff">Vuelta cont.</text>
+  <rect x="308" y="839" width="50" height="10" rx="2" fill="#7F77DD"/>
+  <text font-family="sans-serif" font-size="10" x="333" y="848" text-anchor="middle" fill="#fff">Carriles</text>
+
+</svg>
+</body>
+</html>
