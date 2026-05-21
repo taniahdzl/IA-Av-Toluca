@@ -171,14 +171,13 @@
 const canvas = document.getElementById("cruce");
 const ctx = canvas.getContext("2d");
 const W = canvas.width, H = canvas.height;
-const CX = W / 2, CY = H / 2;
 
-// Dimensiones del cruce basadas en la geometría real del HTML source of truth
-const VIA_W = 28;       // ancho por carril en px
-const ZONA_H_X1 = 170, ZONA_H_X2 = 370;  // zona H horizontal
-const ZONA_H_Y1 = 170, ZONA_H_Y2 = 370;  // zona H vertical
-const LAT_Y1 = 90,  LAT_Y2 = 170;   // Lateral Norte  y=90..170
-const LAT_Y3 = 370, LAT_Y4 = 450;   // Lateral Sur    y=370..450
+// Zona H centrada
+const ZX1 = 180, ZX2 = 360, ZY1 = 180, ZY2 = 360;
+const ZCX = (ZX1+ZX2)/2, ZCY = (ZY1+ZY2)/2;
+// Laterales
+const LAT_N_Y1 = 80,  LAT_N_Y2 = 180;
+const LAT_S_Y1 = 360, LAT_S_Y2 = 460;
 
 const LABELS = {
   queretaro_toluca:  "Querétaro/Toluca (4c fusionados)",
@@ -186,156 +185,141 @@ const LABELS = {
   lateral_sur_oeste: "Lateral Sur oeste (2c rectos)",
 };
 
-function dibujarCruce(f) {
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#1a1d27";
-  ctx.fillRect(0, 0, W, H);
-
-  if (!f) return;
-
-  // ── Asfalto base ─────────────────────────────────────────
-  ctx.fillStyle = "#2d3148";
-
-  // Zona H (cuerpo del Periférico)
-  ctx.fillRect(0, LAT_Y1, W, LAT_Y4 - LAT_Y1);
-
-  // Av. Toluca / Querétaro (vertical, ancho variable)
-  ctx.beginPath();
-  ctx.moveTo(180, 0); ctx.lineTo(360, 0);
-  ctx.lineTo(ZONA_H_X2, ZONA_H_Y1); ctx.lineTo(ZONA_H_X1, ZONA_H_Y1);
-  ctx.closePath(); ctx.fill();
-
-  // Zona H interna (más clara)
-  ctx.fillStyle = "#3a3d52";
-  ctx.fillRect(ZONA_H_X1, ZONA_H_Y1, ZONA_H_X2 - ZONA_H_X1, ZONA_H_Y2 - ZONA_H_Y1);
-
-  // Av. Toluca sur (sale hacia abajo)
-  ctx.fillStyle = "#2d3148";
-  ctx.beginPath();
-  ctx.moveTo(ZONA_H_X1, ZONA_H_Y2); ctx.lineTo(ZONA_H_X2, ZONA_H_Y2);
-  ctx.lineTo(360, H); ctx.lineTo(180, H);
-  ctx.closePath(); ctx.fill();
-
-  // ── Líneas divisorias ─────────────────────────────────────
-  ctx.setLineDash([10, 6]);
-  ctx.strokeStyle = "#4a5568";
-  ctx.lineWidth = 1;
-  // Centro Lateral Norte/Sur
-  ctx.beginPath(); ctx.moveTo(0, (LAT_Y1+LAT_Y2)/2); ctx.lineTo(ZONA_H_X1, (LAT_Y1+LAT_Y2)/2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ZONA_H_X2, (LAT_Y1+LAT_Y2)/2); ctx.lineTo(W, (LAT_Y1+LAT_Y2)/2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(0, (LAT_Y3+LAT_Y4)/2); ctx.lineTo(ZONA_H_X1, (LAT_Y3+LAT_Y4)/2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ZONA_H_X2, (LAT_Y3+LAT_Y4)/2); ctx.lineTo(W, (LAT_Y3+LAT_Y4)/2); ctx.stroke();
-  // Centro Av. Toluca norte
-  ctx.beginPath(); ctx.moveTo(270, 0); ctx.lineTo(ZONA_H_X1+10, ZONA_H_Y1); ctx.stroke();
-  // Centro Av. Toluca sur
-  ctx.beginPath(); ctx.moveTo(ZONA_H_X1+10, ZONA_H_Y2); ctx.lineTo(270, H); ctx.stroke();
-  ctx.setLineDash([]);
-
-  // ── Colas por vialidad ────────────────────────────────────
-  if (!f.vialidades) return;
-
-  // queretaro_toluca: diagonal desde arriba-izquierda
-  drawCola_diagonal(f.vialidades["queretaro_toluca"], 3);
-  // toluca_norte: vertical arriba
-  drawCola_vertical_up(f.vialidades["toluca_norte"], 1);
-  // lateral_norte: horizontal desde derecha
-  drawCola_horiz_right(f.vialidades["lateral_norte"], 4);
-  // lateral_sur_oeste: horizontal desde izquierda
-  drawCola_horiz_left(f.vialidades["lateral_sur_oeste"], 2);
-
-  // ── Semáforos ─────────────────────────────────────────────
-  const semCols = f.vialidades;
-  dibujarSemaforo(ZONA_H_X1 - 16, ZONA_H_Y1 - 16, semCols["queretaro_toluca"]?.color_semaforo);
-  dibujarSemaforo(ZONA_H_X2 + 4,  ZONA_H_Y1 - 16, semCols["lateral_norte"]?.color_semaforo);
-  dibujarSemaforo(ZONA_H_X1 - 16, ZONA_H_Y2 + 4,  semCols["lateral_sur_oeste"]?.color_semaforo);
-  dibujarSemaforo(ZONA_H_X2 + 4,  ZONA_H_Y2 + 4,  semCols["toluca_norte"]?.color_semaforo);
-
-  // ── Zona H bloqueada ──────────────────────────────────────
-  if (f.semaforo?.zona_H_bloqueada) {
-    ctx.fillStyle = "rgba(239,68,68,0.12)";
-    ctx.fillRect(ZONA_H_X1, ZONA_H_Y1, ZONA_H_X2-ZONA_H_X1, ZONA_H_Y2-ZONA_H_Y1);
-    ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5,4]);
-    ctx.strokeRect(ZONA_H_X1, ZONA_H_Y1, ZONA_H_X2-ZONA_H_X1, ZONA_H_Y2-ZONA_H_Y1);
-    ctx.setLineDash([]);
-  }
-
-  // ── Etiquetas ─────────────────────────────────────────────
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "10px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("Zona H", CX, CY + 4);
-  ctx.fillText("Periférico →", W - 50, (LAT_Y1+LAT_Y2)/2 + 4);
-  ctx.fillText("← Periférico", 50, (LAT_Y3+LAT_Y4)/2 + 4);
-}
-
 function barColor(pct) {
   return pct >= 0.9 ? "#ef4444" : pct >= 0.6 ? "#f59e0b" : "#3b82f6";
 }
 
-function drawCola_diagonal(vd, nCarriles) {
-  if (!vd) return;
-  const pct = vd.pct_ocupacion;
-  const len = pct * 140;
-  ctx.fillStyle = barColor(pct) + "99";
-  // Diagonal aprox desde (80,40) hasta (ZONA_H_X1, ZONA_H_Y1)
-  const dx = ZONA_H_X1 - 80, dy = ZONA_H_Y1 - 40;
-  const angle = Math.atan2(dy, dx);
-  ctx.save();
-  ctx.translate(ZONA_H_X1, ZONA_H_Y1);
-  ctx.rotate(angle + Math.PI);
-  ctx.fillRect(0, -nCarriles * VIA_W / 2, len, nCarriles * VIA_W);
-  ctx.restore();
-  // Número
-  ctx.fillStyle = "#e2e8f0";
-  ctx.font = "bold 12px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(vd.cola, 90, 50);
-}
+function dibujarCruce(f) {
+  ctx.clearRect(0, 0, W, H);
 
-function drawCola_vertical_up(vd, nCarriles) {
-  if (!vd) return;
-  const pct = vd.pct_ocupacion;
-  const len = pct * 120;
-  const cx = 330;
-  ctx.fillStyle = barColor(pct) + "99";
-  ctx.fillRect(cx - nCarriles*VIA_W/2, ZONA_H_Y1 - len, nCarriles*VIA_W, len);
-  ctx.fillStyle = "#e2e8f0";
-  ctx.font = "bold 12px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(vd.cola, cx, ZONA_H_Y1 - len - 6);
-}
+  // Fondo
+  ctx.fillStyle = "#1a1d27";
+  ctx.fillRect(0, 0, W, H);
 
-function drawCola_horiz_right(vd, nCarriles) {
-  if (!vd) return;
-  const pct = vd.pct_ocupacion;
-  const len = pct * 130;
-  const cy = (LAT_Y1 + LAT_Y2) / 2;
-  ctx.fillStyle = barColor(pct) + "99";
-  ctx.fillRect(ZONA_H_X2, cy - nCarriles*VIA_W/2, len, nCarriles*VIA_W);
-  ctx.fillStyle = "#e2e8f0";
-  ctx.font = "bold 12px sans-serif";
-  ctx.textAlign = "left";
-  ctx.fillText(vd.cola, ZONA_H_X2 + len + 6, cy + 4);
-}
+  // ── Asfalto ──────────────────────────────────────────────
 
-function drawCola_horiz_left(vd, nCarriles) {
-  if (!vd) return;
-  const pct = vd.pct_ocupacion;
-  const len = pct * 130;
-  const cy = (LAT_Y3 + LAT_Y4) / 2;
-  ctx.fillStyle = barColor(pct) + "99";
-  ctx.fillRect(ZONA_H_X1 - len, cy - nCarriles*VIA_W/2, len, nCarriles*VIA_W);
-  ctx.fillStyle = "#e2e8f0";
-  ctx.font = "bold 12px sans-serif";
+  // Laterales Norte y Sur (horizontales)
+  ctx.fillStyle = "#2d3148";
+  ctx.fillRect(0, LAT_N_Y1, W, LAT_N_Y2 - LAT_N_Y1);
+  ctx.fillRect(0, LAT_S_Y1, W, LAT_S_Y2 - LAT_S_Y1);
+
+  // Av. Querétaro/Toluca (vertical, desde arriba)
+  ctx.fillRect(ZX1, 0, ZX2 - ZX1, ZY1);
+  // Av. Toluca (sale hacia abajo)
+  ctx.fillRect(ZX1, ZY2, ZX2 - ZX1, H - ZY2);
+
+  // Zona H (más clara)
+  ctx.fillStyle = "#3a3d52";
+  ctx.fillRect(ZX1, ZY1, ZX2 - ZX1, ZY2 - ZY1);
+
+  // Líneas centrales
+  ctx.setLineDash([8,6]);
+  ctx.strokeStyle = "#4a5568";
+  ctx.lineWidth = 1;
+  // Lateral Norte
+  ctx.beginPath(); ctx.moveTo(0, (LAT_N_Y1+LAT_N_Y2)/2);
+  ctx.lineTo(ZX1, (LAT_N_Y1+LAT_N_Y2)/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ZX2, (LAT_N_Y1+LAT_N_Y2)/2);
+  ctx.lineTo(W, (LAT_N_Y1+LAT_N_Y2)/2); ctx.stroke();
+  // Lateral Sur
+  ctx.beginPath(); ctx.moveTo(0, (LAT_S_Y1+LAT_S_Y2)/2);
+  ctx.lineTo(ZX1, (LAT_S_Y1+LAT_S_Y2)/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ZX2, (LAT_S_Y1+LAT_S_Y2)/2);
+  ctx.lineTo(W, (LAT_S_Y1+LAT_S_Y2)/2); ctx.stroke();
+  // Av. Toluca vertical
+  ctx.beginPath(); ctx.moveTo((ZX1+ZX2)/2, 0);
+  ctx.lineTo((ZX1+ZX2)/2, ZY1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo((ZX1+ZX2)/2, ZY2);
+  ctx.lineTo((ZX1+ZX2)/2, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (!f || !f.vialidades) {
+    ctx.fillStyle = "#94a3b8"; ctx.font = "11px sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("Zona H", ZCX, ZCY);
+    return;
+  }
+
+  const V = f.vialidades;
+
+  // ── Colas ────────────────────────────────────────────────
+
+  // queretaro_toluca: barra vertical desde arriba hacia zona H
+  if (V["queretaro_toluca"]) {
+    const vd = V["queretaro_toluca"];
+    const len = Math.min(vd.pct_ocupacion * (ZY1 - LAT_N_Y2), ZY1 - LAT_N_Y2);
+    const bw = ZX2 - ZX1 - 8;
+    ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
+    ctx.fillRect(ZX1 + 4, ZY1 - len, bw, len);
+    // Número
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(vd.cola, ZCX, ZY1 - len/2 - 4 > LAT_N_Y2 + 10 ? ZY1 - len/2 : ZY1 - 16);
+  }
+
+  // lateral_norte: barra horizontal desde derecha hacia zona H
+  if (V["lateral_norte"]) {
+    const vd = V["lateral_norte"];
+    const maxLen = W - ZX2 - 10;
+    const len = Math.min(vd.pct_ocupacion * maxLen, maxLen);
+    const bh = LAT_N_Y2 - LAT_N_Y1 - 8;
+    ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
+    ctx.fillRect(ZX2, LAT_N_Y1 + 4, len, bh);
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(vd.cola, ZX2 + len + 6, (LAT_N_Y1+LAT_N_Y2)/2);
+  }
+
+  // lateral_sur_oeste: barra horizontal desde izquierda hacia zona H
+  if (V["lateral_sur_oeste"]) {
+    const vd = V["lateral_sur_oeste"];
+    const maxLen = ZX1 - 10;
+    const len = Math.min(vd.pct_ocupacion * maxLen, maxLen);
+    const bh = LAT_S_Y2 - LAT_S_Y1 - 8;
+    ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
+    ctx.fillRect(ZX1 - len, LAT_S_Y1 + 4, len, bh);
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ctx.fillText(vd.cola, ZX1 - len - 6, (LAT_S_Y1+LAT_S_Y2)/2);
+  }
+
+  // ── Zona H bloqueada ──────────────────────────────────────
+  if (f.semaforo?.zona_H_bloqueada) {
+    ctx.fillStyle = "rgba(239,68,68,0.15)";
+    ctx.fillRect(ZX1, ZY1, ZX2-ZX1, ZY2-ZY1);
+    ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 1.5;
+    ctx.setLineDash([5,4]);
+    ctx.strokeRect(ZX1, ZY1, ZX2-ZX1, ZY2-ZY1);
+    ctx.setLineDash([]);
+  }
+
+  // ── Semáforos (círculos en esquinas de zona H) ────────────
+  const semCol = (v) => {
+    const c = V[v]?.color_semaforo;
+    return c === "green" ? "#4ade80" : c === "yellow" ? "#facc15" : "#374151";
+  };
+  [[ZX1-12, ZY1-12, "queretaro_toluca"],
+   [ZX2+2,  ZY1-12, "lateral_norte"],
+   [ZX1-12, ZY2+2,  "lateral_sur_oeste"],
+   [ZX2+2,  ZY2+2,  "lateral_sur_oeste"]].forEach(([x,y,v]) => {
+    ctx.beginPath(); ctx.arc(x+6, y+6, 6, 0, Math.PI*2);
+    ctx.fillStyle = semCol(v); ctx.fill();
+  });
+
+  // ── Etiquetas ─────────────────────────────────────────────
+  ctx.fillStyle = "#64748b"; ctx.font = "10px sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("Zona H", ZCX, ZCY);
+  ctx.fillText("Av. Querétaro/Toluca ↓", ZCX, 40);
+  ctx.fillStyle = "#94a3b8";
   ctx.textAlign = "right";
-  ctx.fillText(vd.cola, ZONA_H_X1 - len - 6, cy + 4);
+  ctx.fillText("← Lat Norte", ZX1 - 4, (LAT_N_Y1+LAT_N_Y2)/2);
+  ctx.textAlign = "left";
+  ctx.fillText("Lat Sur →", ZX2 + 4, (LAT_S_Y1+LAT_S_Y2)/2);
 }
 
 function dibujarSemaforo(x, y, color) {
-  ctx.beginPath();
-  ctx.arc(x + 6, y + 6, 6, 0, Math.PI * 2);
+  ctx.beginPath(); ctx.arc(x+6, y+6, 6, 0, Math.PI*2);
   ctx.fillStyle = color === "green" ? "#4ade80" : color === "yellow" ? "#facc15" : "#374151";
   ctx.fill();
 }
