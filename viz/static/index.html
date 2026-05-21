@@ -82,6 +82,10 @@
   <div class="hora" id="hora">07:00</div>
 </header>
 
+<nav style="background:#1a1d27;border-bottom:1px solid #2d3148;display:flex;gap:0;">
+  <a href="/" style="padding:10px 24px;font-size:13px;color:#60a5fa;border-bottom:2px solid #3b82f6;text-decoration:none;font-weight:500;">Demo en vivo</a>
+  <a href="/dashboard" style="padding:10px 24px;font-size:13px;color:#64748b;text-decoration:none;">Dashboard de resultados</a>
+</nav>
 <main>
   <div class="canvas-wrap">
     <canvas id="cruce" width="520" height="520"></canvas>
@@ -247,21 +251,22 @@ function dibujarCruce(f) {
   // queretaro_toluca: barra vertical desde arriba hacia zona H
   if (V["queretaro_toluca"]) {
     const vd = V["queretaro_toluca"];
-    const len = Math.min(vd.pct_ocupacion * (ZY1 - LAT_N_Y2), ZY1 - LAT_N_Y2);
+    const maxLen = ZY1 - 10;
+    const len = Math.max(vd.pct_ocupacion * maxLen, 8); // mínimo 8px para visibilidad
     const bw = ZX2 - ZX1 - 8;
     ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
     ctx.fillRect(ZX1 + 4, ZY1 - len, bw, len);
-    // Número
+    // Número encima de la barra
     ctx.fillStyle = "#e2e8f0"; ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(vd.cola, ZCX, ZY1 - len/2 - 4 > LAT_N_Y2 + 10 ? ZY1 - len/2 : ZY1 - 16);
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText(vd.cola, ZCX, ZY1 - len - 4);
   }
 
-  // lateral_norte: barra horizontal desde derecha hacia zona H
+  // lateral_norte: viene del ESTE (derecha), cola crece hacia la derecha desde zona H
   if (V["lateral_norte"]) {
     const vd = V["lateral_norte"];
     const maxLen = W - ZX2 - 10;
-    const len = Math.min(vd.pct_ocupacion * maxLen, maxLen);
+    const len = Math.max(vd.pct_ocupacion * maxLen, 8);
     const bh = LAT_N_Y2 - LAT_N_Y1 - 8;
     ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
     ctx.fillRect(ZX2, LAT_N_Y1 + 4, len, bh);
@@ -274,7 +279,7 @@ function dibujarCruce(f) {
   if (V["lateral_sur_oeste"]) {
     const vd = V["lateral_sur_oeste"];
     const maxLen = ZX1 - 10;
-    const len = Math.min(vd.pct_ocupacion * maxLen, maxLen);
+    const len = Math.max(vd.pct_ocupacion * maxLen, 8);
     const bh = LAT_S_Y2 - LAT_S_Y1 - 8;
     ctx.fillStyle = barColor(vd.pct_ocupacion) + "cc";
     ctx.fillRect(ZX1 - len, LAT_S_Y1 + 4, len, bh);
