@@ -480,10 +480,11 @@
       </div>
       <div class="speed-row" style="margin-top:8px">
         <span>Velocidad</span>
-        <input type="range" min="1" max="60" value="5" id="sp-slider"
+        <input type="range" min="1" max="20" value="2" id="sp-slider"
                oninput="setSpeed(this.value)">
-        <span id="sp-lbl">5×</span>
+        <span id="sp-lbl">2×</span>
       </div>
+      <div style="font-size:10px;color:#64748b;margin-top:3px;text-align:center" id="sp-hint">~1 min / episodio</div>
     </div>
 
   </div>
@@ -681,6 +682,9 @@ async function resetSim() {
 
 async function setSpeed(val) {
   document.getElementById("sp-lbl").textContent = val + "×";
+  const segs = Math.round(3600 / (30 * val));
+  const hint = segs >= 60 ? `~${Math.round(segs/60)} min / episodio` : `~${segs}s / episodio`;
+  document.getElementById("sp-hint").textContent = hint;
   await fetch(`/sim/control?accion=velocidad&valor=${val}`, {method:"POST"});
 }
 
