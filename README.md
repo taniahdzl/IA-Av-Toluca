@@ -47,16 +47,19 @@ continua**, tomando una decisión cada 30 segundos simulados.
 
 ## Resultados
 
-| Métrica | Semáforo campo (51/30/21 s) | Agente SAC | Mejora |
-|---|---|---|---|
-| Cola promedio | 104 veh | 86 veh | −17 % |
-| Cola máxima | 178 veh | 164 veh | −8 % |
-| Espera promedio | 59 s | 50 s | −16 % |
-| Tiempos aprendidos | 51 / 30 / 21 s | ≈ 62 / 25 / 20 s | — |
+| Métrica | Semáforo campo | Óptimo teórico | Agente SAC | Mejora vs campo |
+|---|---|---|---|---|
+| Cola promedio | 425.6 veh | 339.7 veh | **277.6 veh** | −34.8 % |
+| Espera promedio | 243.0 s | 204.7 s | **121.8 s** | −49.9 % |
+| Vehículos salidos | 4,743 | 4,988 | **5,032** | +6.1 % |
+| Tiempos (f1/f2/f3) | 51s / 30s / 21s | 55s / 35s / 12s | 83s / 80s / 14s (prom) | — |
+| Ciclo total | 111 s | 111 s | **~187 s** | — |
 
-El agente aprendió que aumentar ligeramente el verde de Av. Querétaro/Toluca (≈ 62s) y
-reducir las fases de Lateral Norte y Sur oeste reduce los bloqueos en Zona H porque los
-vehículos llegan más espaciados, generando menos congestión acumulada.
+El agente descubrió que el ciclo óptimo es **casi el doble** del actual (187s vs 111s).
+Aumentar significativamente los verdes de Av. Querétaro/Toluca (83s) y Lateral Norte (80s)
+permite que la Zona H se vacíe antes de que entren nuevos vehículos, reduciendo los bloqueos
+acumulados. El verde de Lateral Sur oeste se recortó de 21s a 14s — sus 2 carriles se vacían
+en ese tiempo y el tiempo extra era innecesario.
 
 ## Arquitectura
 
