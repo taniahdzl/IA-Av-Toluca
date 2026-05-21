@@ -21,9 +21,7 @@
   /* Canvas */
   .canvas-wrap { padding: 16px; display: flex; flex-direction: column;
                  align-items: center; gap: 8px; }
-  canvas#cruce { width: 100%; max-width: 520px; aspect-ratio: 1;
-                 background: #1a1d27; border-radius: 10px;
-                 border: 1px solid #2d3148; display: block; }
+  canvas#cruce { display: block; }
   .sim-time { font-size: 11px; color: #64748b; }
 
   /* Panel */
@@ -191,8 +189,8 @@
   <path d="M 222,545 Q 188,545 188,480 Q 188,370 222,310" fill="none" stroke="#e74c3c" stroke-width="2" stroke-dasharray="7 4"/>
   <!-- curva salida hacia lateral norte ← oeste -->
 
-  -- por cambiar
-  <path d="M 222,290 Q 188,290 188,238 Q 188,184 222,172" fill="none" stroke="#e74c3c" stroke-width="2.2" stroke-dasharray="7 4"/> --en donde comienza la flecha del primer carril de la laeteral norte -> oeste 
+  <!-- por cambiar -->
+  <path d="M 222,290 Q 188,290 188,238 Q 188,184 222,172" fill="none" stroke="#e74c3c" stroke-width="2.2" stroke-dasharray="7 4"/><!-- en donde comienza la flecha del primer carril de la lateral norte oeste -->
   <line x1="233" y1="172" x2="30" y2="172" stroke="#e74c3c" stroke-width="2.2" stroke-dasharray="7 4" marker-end="url(#arr)"/>
  
   <!-- ══ CRUCES PEATONALES ══ -->
@@ -523,7 +521,7 @@ function semColor(c) {
   return c === "green" ? "#4ade80" : c === "yellow" ? "#facc15" : "#374151";
 }
 
-function actualizarSemSVG(V) {
+function actualizarSemSVG(V, f) {
   const map = {
     "sem-que":     V["queretaro_toluca"]?.color_semaforo,
     "sem-lat-nor": V["lateral_norte"]?.color_semaforo,
@@ -541,12 +539,10 @@ function actualizarSemSVG(V) {
       el.style.filter = "";
     }
   }
-  // Zona H bloqueada overlay en SVG
   const overlay = document.getElementById("zona-h-overlay");
   if (overlay) {
-    const bloqueada = Object.values(V).some(v => v?.color_semaforo === "red") &&
-                      V["lateral_norte"]?.color_semaforo === "green";
-    overlay.setAttribute("fill", bloqueada ? "rgba(239,68,68,0.15)" : "rgba(239,68,68,0)");
+    const bloqueada = f?.semaforo?.zona_H_bloqueada;
+    overlay.setAttribute("fill", bloqueada ? "rgba(239,68,68,0.18)" : "rgba(239,68,68,0)");
   }
 }
 
@@ -555,7 +551,7 @@ function dibujarCruce(f) {
   if (!f || !f.vialidades) return;
   const V = f.vialidades;
 
-  actualizarSemSVG(V);
+  actualizarSemSVG(V, f);
 
   // ── Zona H bloqueada (canvas) ─────────────────────────────
   if (f.semaforo?.zona_H_bloqueada) {
