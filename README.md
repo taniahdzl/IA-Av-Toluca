@@ -76,7 +76,7 @@ IA-Av-Toluca/
 ├── rl/                       # Aprendizaje por Refuerzo
 │   ├── environment.py        # Entorno gymnasium — obs dim=10, action Box(3,) en [-1,1]
 │   ├── reward.py             # Funciones de recompensa intercambiables (6 opciones)
-│   ├── train.py              # Script auxiliar PPO (experimental)
+│   ├── train.py              # Primer entrenamiento con PPO (reemplazado por SAC)
 │   └── evaluate.py           # Comparación baseline vs agente
 ├── viz/                      # Demo visual
 │   ├── app.py                # Servidor FastAPI + loop de simulación con SAC
